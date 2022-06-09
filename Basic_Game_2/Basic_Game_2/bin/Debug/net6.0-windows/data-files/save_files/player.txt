@@ -1,0 +1,1 @@
+{"boonName":"Hatred","boonDescription":"The hatred of God flows through you.","boonType":"boon","cost":15,"healthCost":10,"healthMaxCost":10,"invisibiltyFrames":0,"mpCost":10,"mpMaxCost":10,"physCost":0,"magicCost":0,"gunCost":-5,"physDefCost":-5,"magDefCost":-5,"speedCost":0,"mpRegenCost":0,"sizeCost":0}
