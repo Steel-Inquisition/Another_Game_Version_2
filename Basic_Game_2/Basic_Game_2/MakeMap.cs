@@ -31,6 +31,10 @@ namespace Basic_Game_2
         // FillMap is only for the tiles and going to anothe room.
         // When going to another room, instead of creating new tiles, it fills the current tiles with a new image, using similar logic to MakeMap()
 
+
+        // Main Problem: This was before I learned about JSON saving and therefore it loading weirdlt
+        // Plus then idea that it has to be split before then turning into the List... is a bit inefficent
+
         public void MakeMap()
         {
             // SET UP DATA 
@@ -117,7 +121,8 @@ namespace Basic_Game_2
 
         }
 
-
+        // Creates objects for the map for the player to interact with
+        // Not just enemeis but every object as well
         public void MakeEnemyMap(String[] dictionaryWords)
         {
             List<string> room = new();
@@ -139,8 +144,6 @@ namespace Basic_Game_2
             int generateRoom = 0;
 
             int wallSize = 25;
-
-            // Idea: Already create the rectangle floor, just set the FILL style of the floor instead of creating a new rectangle each time
 
             while (generateRoom < room.Count)
             {
@@ -403,7 +406,6 @@ namespace Basic_Game_2
 
             string totalRoom = "";
 
-
             for (int i = 0; i < Map.totalMap[Map.currentRoom].size / 2; i += 1)
             {
                 totalRoom += wallRoom[i] + ",";
@@ -415,9 +417,9 @@ namespace Basic_Game_2
         }
 
 
+        // Find a room on the mini map
         public void FindRoomOnMap()
         {
-
             foreach (Rectangle x in MiniMapCanvas.Children.OfType<Rectangle>())
             {
 
@@ -435,6 +437,7 @@ namespace Basic_Game_2
 
         }
 
+        // Move the player across the minimap
         public void RemovePlayerSymbol()
         {
             foreach (Rectangle x in MiniMapCanvas.Children.OfType<Rectangle>())
@@ -448,6 +451,7 @@ namespace Basic_Game_2
         }
 
 
+        // Create the mini map
         public void CreateMiniMap()
         {
 
@@ -477,8 +481,10 @@ namespace Basic_Game_2
                 {
                     row++;
 
+                    // Fog of War
                     listStats.Add(new WallMaker(100, wallSize, (row * wallSize) - wallSize, (col * wallSize), MiniMapCanvas, listStats.Count, "ruby", $"map{listStats.Count}", "wall"));
 
+                    // Hidden Stats
                     hiddenStats.Add(new WallMaker(100, wallSize, (row * wallSize) - wallSize, (col * wallSize), MiniMapCanvas, hiddenStats.Count, "blank", $"token{hiddenStats.Count}", "wall"));
 
                     generateRoom++; // Get to the next part of the array
@@ -496,14 +502,7 @@ namespace Basic_Game_2
         }
 
 
-
-
-
-
-
-
-
-
+        // Fill the map
         public void FillMap()
         {
             // SET UP DATA 
@@ -524,14 +523,16 @@ namespace Basic_Game_2
                 room.Add(dictionaryWords[i]);
             }
 
+            // Change object to fill
             FillingAllSections(PlayerSpace, room, y);
 
+            // Create the enemy map
             MakeEnemyMap(dictionaryWords);
 
 
         }
 
-
+        // FIllinf the entire map
         public void FillingAllSections(Canvas ThisCanvas, List<string> room, int y)
         {
 
@@ -595,7 +596,8 @@ namespace Basic_Game_2
 
 
 
-
+        // Delete all enemies when using holy cross
+        // Honestly there are so many enemies that it's going to be  a pain to include everyone
         public void DeleteALlEnemies()
         {
 
@@ -611,7 +613,7 @@ namespace Basic_Game_2
         }
 
 
-
+        // Save the map
         public void SaveMap(Rectangle c, string selection)
         {
             // Get the totalMap and the current room that the player is in. From that current room, get the room tiles within.
@@ -665,6 +667,7 @@ namespace Basic_Game_2
 
     }
 
+    // Map Maker Class
     public class MapMaker
     {
         public String? totalMapText = null;
@@ -709,6 +712,7 @@ namespace Basic_Game_2
         }
     }
 
+    // Room Maker Class
     public class RoomMaker
     {
         public int size = 0;
@@ -722,13 +726,15 @@ namespace Basic_Game_2
             this.roomTiles = roomTiles;
         }
 
+
+        // Activate the room if it is special
         public void ActivateRoom(TextBlock LogBox, ScrollViewer ScrollBar, Rectangle Player, Action MakeArmPusherBoss)
         {
-            if (roomType == "none")
+            if (roomType == "none") // basic room type
             {
                 // Does Nothing
 
-            } else if (roomType == "[trap]")
+            } else if (roomType == "[trap]") // trap
             {
                 roomType = "none";
 
@@ -737,13 +743,13 @@ namespace Basic_Game_2
                 ScrollBar.ScrollToEnd();
 
                 Canvas.SetLeft(Player, Canvas.GetLeft(Player) + 200);
-            } else if (roomType == "[exit1]")
+            } else if (roomType == "[exit1]") // get to the exit
             {
                 LogBox.Text += $"Exit Tutorial! \n";
 
                 ScrollBar.ScrollToEnd();
             }
-            else if (roomType == "[boss]")
+            else if (roomType == "[boss]") // final boss
             {
                 LogBox.Text += $"The Final Boss! \n";
 
@@ -754,7 +760,7 @@ namespace Basic_Game_2
 
                 MakeArmPusherBoss();
             }
-            else
+            else // Used to write special text
             {
                 LogBox.Text += $"{roomType} \n";
 

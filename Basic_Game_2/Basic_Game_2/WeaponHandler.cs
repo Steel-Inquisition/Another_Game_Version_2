@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -23,29 +22,39 @@ namespace Basic_Game_2
         // At the very bottom is how the weapon is made
 
 
-        /// <summary>
-        ///  use classMakerList[i].classWeapon for weapon selector eventually
-        /// </summary>
 
 
+        // Main Problems:
+        // The WeaponCreate shouldn't have been an object. I think Weapon Maker have being donated from the overall list, should be the one that has the object of itself stored within it
+
+
+
+        // CONNECTED TO THE BASE
         public void SwordAttack(WeaponMaker CurrentWeapon, PlayerMaker CurrentPlayer)
         {
 
-
+            // If the space bar is press and the weapon is not created
             if (Keyboard.IsKeyDown(Key.Space) && weaponCreated == false)
             {
 
+                // Get the dirrection the player is looking at that and that will be the dirrection of the blade no matter the dirrection moving 
                 oldDirrection = CurrentPlayer.currentDirrection;
 
+                // Check the damage type
+                // If it's magic it will use MP while if it's phys / gun it will just swing normally
                 CheckAttackType(CurrentWeapon, CurrentPlayer);
+
+                // If the weapon is ranged then it will shoot out a projectile
                 CheckRanged(CurrentWeapon, CurrentPlayer);
 
             }
 
+
+            // If the weapon is created
             if (weaponCreated)
             {
                 frame++;
-                weaponCreated = weapon.AddRemoveSword(ItemSpace, weaponCreated, frame, Player, itemstoremove, oldDirrection);
+                weaponCreated = weapon.AddRemoveSword(weaponCreated, frame, Player, itemstoremove, oldDirrection);
 
             }
             else
@@ -54,22 +63,23 @@ namespace Basic_Game_2
             }
         }
 
-        public void EnemySwordAttack(WeaponMaker CurrentWeapon, EnemyMaker Enemy, Rectangle EnemyRectangle, Rectangle Weapon, int enemyNum)
-        {
-            weapon.EnemyAddSword(PlayerSpace, Enemy.WeaponCreated, Enemy.innerFrame, EnemyRectangle, itemstoremove, Enemy.currentDirrection, enemyStats, Weapon, enemyNum);
 
-        }
-
-
+        // Check the damagetype of the weapon
         public void CheckAttackType(WeaponMaker CurrentWeapon, PlayerMaker CurrentPlayer)
         {
+
+            // If the weapon is physical or gun
             if (CurrentWeapon.damageType == "phys" || CurrentWeapon.damageType == "gun")
             {
+
+                // Create a weapon and then return "true" that a weapon is created
                 weaponCreated = weapon.CreateWeapon(CurrentPlayer.currentDirrection, ItemSpace, CurrentWeapon.type, CurrentWeapon);
 
-            }
+            } // or the weapon is magical
             else if (CurrentWeapon.damageType == "magic")
             {
+
+                // Check Magic
                 CheckMagic(CurrentWeapon, CurrentPlayer);
 
                 UpdateUi();
@@ -79,63 +89,60 @@ namespace Basic_Game_2
         }
 
 
-
+        // If the weapon is magical
         public void CheckMagic(WeaponMaker CurrentWeapon, PlayerMaker CurrentPlayer)
         {
             // If Mp usage above current weapon mpusage
             if (CurrentPlayer.mp - CurrentWeapon.mpUsage > 0)
             {
+                // Subtract the current player mp bythe current weapon mp usage
                 CurrentPlayer.mp -= CurrentWeapon.mpUsage;
 
+                // 
                 weaponCreated = weapon.CreateWeapon(CurrentPlayer.currentDirrection, ItemSpace, CurrentWeapon.type, CurrentWeapon);
 
             }
         }
 
+        // If the weapon is ranged
         public void CheckRanged(WeaponMaker CurrentWeapon, PlayerMaker CurrentPlayer)
         {
             if (CurrentWeapon.type == "ranged")
             {
-                if (ammo - CurrentWeapon.bulletUsage > 0)
+
+                // If there is enough ammo
+                if (ammo - CurrentWeapon.bulletUsage >= 0)
                 {
+
+                    // Subtract the amount of ammo by the bullet usage of the weapon
                     ammo -= CurrentWeapon.bulletUsage;
 
+                    // Fire the projectile
                     Fire(CurrentWeapon, CurrentPlayer.currentDirrection);
 
+                    // Change UI to show this change
                     UpdateItemCount();
                 }
 
             }
         }
 
+        // Move each bullet in the array
         public void MoveBullet()
         {
             Random rand = new Random();
 
-            LogBox.Text = $"{bulletFired.Count}";
-
-            foreach (Rectangle x in BulletCanvas.Children.OfType<Rectangle>())
+            for (int i = 0; i < bulletFired.Count; i++)
             {
-                foreach (BulletMaker y in bulletFired)
-                {
-                    if ((y.tag == (string)x.Tag))
-                    {
-                        y.Move(x, rand, BulletAccuracyX, BulletAccuracyY, itemstoremove);
-
-                    }
-
-
-                }
-
+                bulletFired[i].Move(rand, BulletAccuracyX, BulletAccuracyY, itemstoremove);
             }
-
 
         }
 
 
 
 
-
+        // Randomly change the bullet movement in the x axis
         public void BulletAccuracyX(Rectangle x, Random rand, int accuracy)
         {
             // Random
@@ -143,6 +150,7 @@ namespace Basic_Game_2
             Canvas.SetLeft(x, (Canvas.GetLeft(x) + rand.Next(0, accuracy)));
         }
 
+        // Randony chnage the bullet movement in the y axis
         public void BulletAccuracyY(Rectangle x, Random rand, int accuracy)
         {
             // Random
@@ -150,39 +158,57 @@ namespace Basic_Game_2
             Canvas.SetTop(x, (Canvas.GetTop(x) - rand.Next(0, accuracy)));
         }
 
+        // The creation of the bullet
         public void Fire(WeaponMaker CurrentWeapon, string currentDirrection)
         {
             // Get Current Bullet
-            BulletMaker CurrentBullet = CurrentWeapon.bulletType;
+            // And create a duplicate of it
+            BulletMaker CurrentBullet = new(CurrentWeapon.bulletType.name, CurrentWeapon.bulletType.description, CurrentWeapon.bulletType.bulletType, CurrentWeapon.bulletType.bulletUsage, CurrentWeapon.bulletType.bulletDamage, CurrentWeapon.bulletType.bulletWidth, CurrentWeapon.bulletType.bulletHeight, CurrentWeapon.bulletType.bulletSpeed, CurrentWeapon.bulletType.bulletAccuracy);
 
+            // Get the current bullet and add the damage of the weapon onto it
             CurrentBullet.bulletDamage += CurrentWeapon.damage;
 
+            // Get the dirrection of the bullet fired
             CurrentBullet.dirrection = currentDirrection;
 
-            bulletFired.Add(CurrentBullet);
+            // Chnage the tag to the current bullet
+            CurrentBullet.tag = $"bullet-{bulletFired.Count}-{oldDirrection}";
 
-            CurrentBullet.tag = $"bullet-{bulletFired.Count - 1}-{oldDirrection}";
-
+            // Get the (x,y) position
             double x = Canvas.GetLeft(Player);
             double y = Canvas.GetTop(Player);
 
             if (currentDirrection == "up" || currentDirrection == "down") // If current Dirrection up or down
             {
-                _ = new Draw($"bullet-{bulletFired.Count - 1}-{oldDirrection}", CurrentBullet.bulletWidth, CurrentBullet.bulletHeight, Convert.ToInt16(x), Convert.ToInt16(y), $"weapons/10", CurrentBullet.name, BulletCanvas);
+
+                // Create the bullet onto the canvas
+                var newRect = new Draw($"bullet-{bulletFired.Count}-{oldDirrection}", CurrentBullet.bulletWidth, CurrentBullet.bulletHeight, Convert.ToInt16(x), Convert.ToInt16(y), $"weapons/10", CurrentBullet.name, BulletCanvas);
+
+                // Add the current self onto the bullet
+                CurrentBullet.self = newRect.Rect;
 
 
             }
             else if (currentDirrection == "left" || currentDirrection == "right")
             {
-                _ = new Draw($"bullet-{bulletFired.Count - 1}-{oldDirrection}", CurrentBullet.bulletHeight, CurrentBullet.bulletWidth, Convert.ToInt16(x), Convert.ToInt16(y), $"weapons/10", CurrentBullet.name, BulletCanvas);
 
+                // Create the bullet onto the canvas
+                var newRect = new Draw($"bullet-{bulletFired.Count}-{oldDirrection}", CurrentBullet.bulletHeight, CurrentBullet.bulletWidth, Convert.ToInt16(x), Convert.ToInt16(y), $"weapons/10", CurrentBullet.name, BulletCanvas);
+
+                // Add the current self onto the bullet
+                CurrentBullet.self = newRect.Rect;
 
             }
+
+            // Add it to the List so it can be accessed
+            bulletFired.Add(CurrentBullet);
+
 
         }
 
     }
 
+    // Class that Creates Bullets
     public class BulletMaker
     {
         public string name;
@@ -200,7 +226,9 @@ namespace Basic_Game_2
         public int bulletSpeed;
         public int bulletAccuracy;
 
-        public BulletMaker(string name, string description, string bulletType, int bulletUsage, double bulletDamage,  int bulletWidth, int bulletHeight, int bulletSpeed, int bulletAccuracy)
+        public Rectangle self = new();
+
+        public BulletMaker(string name, string description, string bulletType, int bulletUsage, double bulletDamage, int bulletWidth, int bulletHeight, int bulletSpeed, int bulletAccuracy)
         {
             this.name = name;
             this.description = description;
@@ -238,8 +266,8 @@ namespace Basic_Game_2
             }
         }
 
-        // Mocing the Bullet
-        public void Move(Rectangle self, Random rand, Action<Rectangle, Random, int> BulletAccuracyX, Action<Rectangle, Random, int> BulletAccuracyY, List<Rectangle> itemstoremove)
+        // Moving the Bullet
+        public void Move(Random rand, Action<Rectangle, Random, int> BulletAccuracyX, Action<Rectangle, Random, int> BulletAccuracyY, List<Rectangle> itemstoremove)
         {
 
             if (dirrection == "up")
@@ -280,6 +308,8 @@ namespace Basic_Game_2
     }
 
 
+    // Class that is made to create weapons from Weapon Maker
+    // I don't know why this is an object, since most of the time it is used, it is treated like a normal function
     public class WeaponCreate
     {
 
@@ -287,6 +317,10 @@ namespace Basic_Game_2
         public double weaponWidth;
         public double weaponTimer;
 
+        public Rectangle self = new();
+
+
+        // Create weapon based on dirrection
         public bool CreateWeapon(string currentDirrection, Canvas PlayerSpace, string tagName, WeaponMaker CurrentWeapon)
         {
             if (currentDirrection == "up" || currentDirrection == "down") // If current Dirrection up or down
@@ -295,9 +329,12 @@ namespace Basic_Game_2
                 weaponHeight = CurrentWeapon.width;
 
                 weaponTimer = CurrentWeapon.timeLength;
+                
+                // Create the weapon
+                var newRect = new Draw(tagName, Convert.ToInt16(weaponWidth), Convert.ToInt16(weaponHeight), 0, 0, $"weapons/{CurrentWeapon.imageName}-1", CurrentWeapon.name, PlayerSpace);
 
-                _ = new Draw(tagName, Convert.ToInt16(weaponWidth), Convert.ToInt16(weaponHeight), 0, 0, $"weapons/{CurrentWeapon.imageName}-1", CurrentWeapon.name, PlayerSpace);
-
+                // Set the self to the self
+                self = newRect.Rect;
 
             }
             else if (currentDirrection == "left" || currentDirrection == "right")
@@ -307,38 +344,31 @@ namespace Basic_Game_2
 
                 weaponTimer = CurrentWeapon.timeLength;
 
-                _ = new Draw(tagName, Convert.ToInt16(weaponWidth), Convert.ToInt16(weaponHeight), 0, 0, $"weapons/{CurrentWeapon.imageName}-1.5", CurrentWeapon.name, PlayerSpace);
+                // Create the weapon
+                var newRect = new Draw(tagName, Convert.ToInt16(weaponWidth), Convert.ToInt16(weaponHeight), 0, 0, $"weapons/{CurrentWeapon.imageName}-1.5", CurrentWeapon.name, PlayerSpace);
+
+                // Set the self to the self
+                self = newRect.Rect;
             }
 
             return true;
 
         }
 
-
-        public void EnemyAddSword(Canvas PlayerSpace, bool weaponCreated, int frame, Rectangle EnemyRectangle, List<Rectangle> itemstoremove, string oldDirrection, List<EnemyMaker> enemyStats, Rectangle x, int y)
+        // Adding or Removing the sword based on timer
+        public bool AddRemoveSword(bool weaponCreated, int frame, Rectangle Player, List<Rectangle> itemstoremove, string oldDirrection)
         {
 
-            FollowPlayer(x, EnemyRectangle, frame, weaponCreated, itemstoremove, oldDirrection);
-        }
-
-
-        public bool AddRemoveSword(Canvas PlayerSpace, bool weaponCreated, int frame, Rectangle Player, List<Rectangle> itemstoremove, string oldDirrection)
-        {
-            foreach (Rectangle x in PlayerSpace.Children.OfType<Rectangle>())
+            // if the weapon is melee or ranged, then follow playr and if the weapon timer runs out, delete itself
+            if ((string)self.Tag == $"melee" || (string)self.Tag == $"ranged")
             {
-                if ((string)x.Tag == $"melee" || (string)x.Tag == $"ranged")
+                weaponCreated = FollowPlayer(self, Player, weaponCreated, oldDirrection);
+
+                if (frame > weaponTimer)
                 {
-                    weaponCreated = FollowPlayer(x, Player, frame, weaponCreated, itemstoremove, oldDirrection);
+                    itemstoremove.Add(self);
 
-                    if (frame > weaponTimer)
-                    {
-                        itemstoremove.Add(x);
-
-                        weaponCreated = false;
-                    }
-
-                    break;
-
+                    weaponCreated = false;
                 }
 
             }
@@ -346,7 +376,11 @@ namespace Basic_Game_2
             return weaponCreated;
         }
 
-        public bool FollowPlayer(Rectangle z, Rectangle PlayerCharacter, int frame, bool weaponCreated, List<Rectangle> itemstoremove, string oldDirrection)
+
+
+
+        // This makes no sense to use as an object
+        public bool FollowPlayer(Rectangle z, Rectangle PlayerCharacter, bool weaponCreated, string oldDirrection)
         {
             // Follow the Player Perfectly
 
@@ -438,7 +472,7 @@ namespace Basic_Game_2
 
         // If Gun
         public double bulletUsage;
-        public BulletMaker bulletType = new("", "", "", 0, 0, 0,0,0,0);
+        public BulletMaker bulletType = new("", "", "", 0, 0, 0, 0, 0, 0);
 
 
 

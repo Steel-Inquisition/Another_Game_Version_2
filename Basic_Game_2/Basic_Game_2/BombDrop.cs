@@ -11,18 +11,28 @@ namespace Basic_Game_2
 
     public partial class MainWindow : Window
     {
+
+        // Press Bomb to drop it
         public void PlaceBomb()
         {
+
+            // When placed bomb and have enoguh bombs
             if (Keyboard.IsKeyDown(Key.LeftCtrl) && bomb > 0)
             {
+
+                // Add a bomb to the list
                 bombList.Add(new("bomb", "A bomb that goes boom", bombList.Count, "bomb", 25, 25, 20, Canvas.GetLeft(Player), Canvas.GetTop(Player), ItemSpace, new($"explosion-{bombList.Count}", "explosion", 60, 60, 50, 10, 40, Canvas.GetLeft(Player), Canvas.GetTop(Player) - 10, ItemSpace)));
 
+                // Subtract bomb amount
                 bomb -= 1;
 
+                // show new amount of bombs
                 TotalPartyInv.Text = $" Coin: {coin} \n Ammo: {ammo} \n Holy Cross: {holyCross} \n Key: {key} \n Bomb:{bomb}";
 
+                // Show that a bomb was dropped!
                 LogBox.Text += $"{playerList[currentPlayer].name} dropped a bomb! \n";
 
+                // Update UI to show change
                 UpdateUi();
                 ScrollBar.ScrollToEnd();
             }
@@ -33,26 +43,34 @@ namespace Basic_Game_2
             for (int i = 0; i < bombList.Count; i++)
             {
 
+                // Increase bomb fuse
                 bombList[i].fuse++;
 
+                // if the bomb fuse is above the fuse max
                 if (bombList[i].fuse > bombList[i].fuseMax)
                 {
-
+                    // bomb now exists
                     bool bombExists = true;
 
                     foreach (Rectangle bomb in ItemSpace.Children.OfType<Rectangle>())
                     {
                         if ((string)bomb.Tag == $"{bombList[i].tag}")
                         {
+                            // add the explosions
                             explosionList.Add(bombList[i].explosion);
+
+                            // remove bomb
                             itemstoremove.Add(bomb);
 
+                            // bomb no longer exists
                             bombExists = false;
                         }
                     }
 
+                    // if bomb no longer exists
                     if (bombExists == false)
                     {
+                        // draw the explosion
                         bombList[i].explosion.ExplosionGoBoom(ItemSpace);
                     }
 
@@ -65,7 +83,7 @@ namespace Basic_Game_2
 
         }
 
-
+        // explosions
         public void Explosion()
         {
             foreach (Rectangle explosion in ItemSpace.Children.OfType<Rectangle>())
@@ -74,15 +92,22 @@ namespace Basic_Game_2
                 {
                     if ((string)explosion.Tag == $"explosion-{i}")
                     {
+
+                        // increase explosion fuse
                         explosionList[i].fuse++;
 
+                        // if the fuse runs out
                         if (explosionList[i].fuse > explosionList[i].fuseMax)
                         {
+
+                            // bomb goes boom
                             LogBox.Text += $"Bomb exploaded! \n";
 
+                            // update UI
                             UpdateUi();
                             ScrollBar.ScrollToEnd();
 
+                            // destroy explosion
                             itemstoremove.Add(explosion);
                         }
                     }
@@ -93,6 +118,7 @@ namespace Basic_Game_2
 
         }
 
+        // when the bomb exploads
         public void BombExpload(Rect PlayerHtBox)
         {
             foreach (Rectangle y in ItemSpace.Children.OfType<Rectangle>())
@@ -109,24 +135,27 @@ namespace Basic_Game_2
                         {
                             for (int i = 0; i < enemyStats.Count; i++)
                             {
-
                                 if ((string)x.Tag == $"enemy-{i}")
                                 {
+
+                                    // get enemy hit box
                                     var Enemy = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
 
 
-
+                                    // if the enemy hits the explpsion
                                     if (Enemy.IntersectsWith(Explosion))
                                     {
-
+                                        // dead damage
                                         currentPlayer = enemyStats[i].calculateBombDamage(explosionList[w], LogBox, UpdateUi, ScrollBar, healthBarList[i], currentPlayer, PlayerUiBox);
+
+                                        // check if enemy is dead
                                         enemyStats[i].checkIfDead(itemstoremove, progressstoremove, x, healthBarList[i], PlayerSpace, i);
 
                                     }
                                 }
                             }
 
-
+                            // search for broken walls
                             for (int i = 0; i < itemStats.Count; i++)
                             {
                                 if ((string)x.Tag == $"item-{i}")
@@ -135,8 +164,14 @@ namespace Basic_Game_2
 
                                     if (Explosion.IntersectsWith(item))
                                     {
+
+                                        // destroy wall
                                         itemStats[i].takeDamage(100);
+
+                                        // save this change
                                         SaveMap(x, "0");
+
+                                        // destroy the wall from the canvas
                                         itemstoremove.Add(x);
                                     }
 
@@ -152,7 +187,7 @@ namespace Basic_Game_2
 
 
 
-
+                        // inivisbility frames for player
                         if (invisibilityFrame > playerList[currentPlayer].invisibiltyFrames)
                         {
                             invisibilityFrame = 0;
@@ -162,10 +197,13 @@ namespace Basic_Game_2
                         // Check out Player
                         if (PlayerHtBox.IntersectsWith(Explosion) && PlayerIsHit == false)
                         {
-
+                            // player is hit
                             PlayerIsHit = true;
+
+                            // player is delt damage
                             currentPlayer = playerList[currentPlayer].BombDamaged(explosionList[w].damage, LogBox, UpdateUi, ScrollBar, PlayerUiBox, healthBarList[0], currentPlayer);
 
+                            // player is dead
                             currentPlayer = playerList[currentPlayer].CheckIfDead(currentPlayer, PlayerUiBox, "BOMB", LogBox, ScrollBar, UpdateUi);
                         }
 
@@ -184,7 +222,7 @@ namespace Basic_Game_2
 
 
 
-
+    // explosion class
     public class ExplosionMaker
     {
         public int width;
@@ -215,12 +253,15 @@ namespace Basic_Game_2
             this.y = y;
         }
 
+
+        // create explosion
         public void ExplosionGoBoom(Canvas ThisCanvas)
         {
             _ = new Draw(tag, Convert.ToInt16(height), Convert.ToInt16(width), Convert.ToInt16(x), Convert.ToInt16(y), imageName, "explosion", ThisCanvas);
         }
     }
 
+    // bomb class
     public class BombMaker
     {
         public string name;
@@ -262,6 +303,7 @@ namespace Basic_Game_2
             this.yBomb = Convert.ToInt16(yBomb);
 
 
+            // create bombs
             _ = new Draw(tag, Convert.ToInt16(height), Convert.ToInt16(width), this.xBomb, this.yBomb, imageName, name, ThisCanvas);
         }
     }

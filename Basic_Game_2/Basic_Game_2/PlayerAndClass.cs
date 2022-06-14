@@ -9,6 +9,14 @@ using System.Windows.Shapes;
 
 namespace Basic_Game_2
 {
+
+
+    // Main Probklem:
+    // Exiting to a new room could be a bit more efficent. Since it is repettive and can probally just be a single function
+
+
+
+    // Player Maker Class
     public class PlayerMaker : LivingBase
     {
         public int invisibiltyFrames;
@@ -34,6 +42,8 @@ namespace Basic_Game_2
             this.invisibiltyFrames = invisibiltyFrames;
         }
 
+
+        // Change player based on ZXCV
         public int playerSwitcher(int currentPlayer, Rectangle Player, List<PlayerMaker> playerList, bool PlayerIsHit)
         {
             if (Keyboard.IsKeyDown(Key.Z) && playerList[0].health > 0 && PlayerIsHit == false)
@@ -68,11 +78,14 @@ namespace Basic_Game_2
             return currentPlayer;
         }
 
+        // Change player image by filling
         public void PlayerImage(Rectangle Player)
         {
             _ = new FillDraw("classes/" + playerClass, Player);
         }
 
+
+        // Change UI based on player selected
         public int PlayerUiSelect(int currentPlayer, Canvas PlayerSpace, List<PlayerMaker> playerList)
         {
 
@@ -80,6 +93,8 @@ namespace Basic_Game_2
             foreach (Rectangle x in PlayerSpace.Children.OfType<Rectangle>())
             {
 
+
+                // All players that have enough health have a white background
                 for (int i = 0; i < playerList.Count; i++)
                 {
                     if ((string)x.Tag == $"PlayerUiBackground-{i}" && playerList[i].health > 0)
@@ -88,22 +103,29 @@ namespace Basic_Game_2
                     }
                 }
 
+                // find the current player selected and turn that green
                 if ((string)x.Tag == $"PlayerUiBackground-{currentPlayer}" && playerList[currentPlayer].health > 0)
                 {
                     _ = new FillDraw("ui/backgroundSelect", x);
-                }
+                } // else if player swithcing to is dead, then find someone else
                 else if (playerList[currentPlayer].health <= 0)
                 {
 
+
+                    // if all the players health are above 0
                     if (playerList[0].health > 0 || playerList[1].health > 0 || playerList[2].health > 0 || playerList[3].health > 0)
                     {
+
+                        // If the current player you are controlling has less than 0 health
                         while (playerList[currentPlayer].health <= 0)
                         {
+
+                            // if the current player is in the third slot, move to the 1st slot
                             if (currentPlayer == 3)
                             {
                                 currentPlayer = 0;
                             }
-                            else
+                            else // else increase current player until you find a player that is alive
                             {
                                 currentPlayer++;
                             }
@@ -120,11 +142,16 @@ namespace Basic_Game_2
             return currentPlayer;
 
         }
+        
 
+        // Deal Damage to Player
         public int damaged(EnemyMaker Enemy, TextBlock LogBox, Action UpdateUi, ScrollViewer ScrollBar, Canvas PlayerUiBox, ProgressBar CurrentProgressBar, int currentPlayer)
         {
+
+            // Set Initial Damage
             double damage = 0;
 
+            // Based on damage type add that type of damage
             if (Enemy.weapon.damageType == "phys")
             {
                 damage += Enemy.phys;
@@ -136,22 +163,29 @@ namespace Basic_Game_2
                 damage -= magDef;
             }
 
+            // Let player take damage
             currentPlayer = TakeDamage(damage, Enemy.name, currentPlayer, LogBox, UpdateUi, PlayerUiBox, ScrollBar, CurrentProgressBar);
 
 
             return currentPlayer;
         }
 
+        // Deal damage based on bomb
         public int BombDamaged(int damage, TextBlock LogBox, Action UpdateUi, ScrollViewer ScrollBar, Canvas PlayerUiBox, ProgressBar CurrentProgressBar, int currentPlayer)
         {
             return TakeDamage(damage, "bomb", currentPlayer, LogBox, UpdateUi, PlayerUiBox, ScrollBar, CurrentProgressBar);
 
         }
 
+        // Check if the player is dead
         public int CheckIfDead(int currentPlayer, Canvas PlayerUiBox, string currentKiller, TextBlock LogBox, ScrollViewer ScrollBar, Action UpdateUi)
         {
+
+            // if the current player has less than 0 health
             if (health <= 0)
             {
+
+                // Find the player and turn them red
                 foreach (Rectangle x in PlayerUiBox.Children.OfType<Rectangle>())
                 {
                     if ((string)x.Tag == $"PlayerUiBackground-{currentPlayer}")
@@ -162,9 +196,10 @@ namespace Basic_Game_2
 
                 }
 
+                // Show that the player was dead
                 LogBox.Text += $"{name} is dead! Killed by {currentKiller}! \n";
 
-
+                // Change the UI
                 UpdateUi();
                 ScrollBar.ScrollToEnd();
             }
@@ -174,8 +209,7 @@ namespace Basic_Game_2
 
 
 
-        // WHAT IS ACTION???
-        // https://stackoverflow.com/questions/917551/func-delegate-with-no-return-type
+        // Move to next room when reaching border
         public void NextRoom(Rectangle Player, MapMaker Map, Action FillMap, Action transportNextRoom, Action FindRoomOnMap, Action RemovePlayerSymbol, TextBlock LogBox, ScrollViewer ScrollBar, List<EnemyMaker> enemyStats, List<ProgressBar> healthBarList, List<BulletMaker> bulletFired, List<BombMaker> bombList, List<ExplosionMaker> explosionList, Action MakeArmPusherBoss)
         {
 
@@ -184,46 +218,78 @@ namespace Basic_Game_2
             // Going to the Left
             if (Canvas.GetLeft(Player) < 80)
             {
+
+                // Change the player symbol
                 RemovePlayerSymbol();
+
+                // Change the current room the player is in
                 Map.currentRoom -= 1;
+
+                // Teleport player to give illusion of change
                 Canvas.SetLeft(Player, Canvas.GetLeft(Player) + 475);
+
+                // Exit map is true
                 exitMap = true;
 
                 LogBox.Text += "Moved Left \n";
 
             }
-            else if (Canvas.GetLeft(Player) > (580 - Player.Width))
+            else if (Canvas.GetLeft(Player) > (580 - Player.Width)) // to the right
             {
+                // Change the player symbol
                 RemovePlayerSymbol();
 
+                // Change the current room the player is in
                 Map.currentRoom += 1;
+
+                // Teleport player to give illusion of change
                 Canvas.SetLeft(Player, Canvas.GetLeft(Player) - 475);
+
+                // Exit map is true
                 exitMap = true;
 
                 LogBox.Text += "Moved Right \n";
 
             }
-            else if (Canvas.GetTop(Player) < 80)
+            else if (Canvas.GetTop(Player) < 80) // to the top
             {
+
+                // Change the player symbol
                 RemovePlayerSymbol();
 
+                // Change the current room the player is in
                 Map.currentRoom -= 10;
+
+                // Teleport player to give illusion of change
                 Canvas.SetTop(Player, Canvas.GetTop(Player) + 475);
+
+                // Exit map is true
                 exitMap = true;
 
                 LogBox.Text += "Moved North \n";
             }
-            else if (Canvas.GetTop(Player) > (580 - Player.Height))
+            else if (Canvas.GetTop(Player) > (580 - Player.Height)) // to the south
             {
+
+                // Change the player symbol
                 RemovePlayerSymbol();
 
+                // Change the current room the player is in
                 Map.currentRoom += 10;
+
+                // Teleport player to give illusion of change
                 Canvas.SetTop(Player, Canvas.GetTop(Player) - 475);
+
+                // Exit map is true
                 exitMap = true;
 
                 LogBox.Text += "Moved South \n";
             }
 
+
+            // if exiitng the map
+            // clear everything
+            // then fill the map to the new room
             if (exitMap)
             {
                 healthBarList.Clear();

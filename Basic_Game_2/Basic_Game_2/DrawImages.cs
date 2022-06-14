@@ -13,8 +13,13 @@ using System.Windows.Threading;
 
 namespace Basic_Game_2
 {
+
+    // Draw all Objects
     public class Draw
     {
+
+        public Rectangle Rect;
+
         public Draw(string tag, int height, int width, int x, int y, string imageName, string name, Canvas ThisCanvas)
         {
 
@@ -34,11 +39,12 @@ namespace Basic_Game_2
                 Fill = image
             };
 
+            Rect = newRect;
+
             Canvas.SetLeft(newRect, x);
             Canvas.SetTop(newRect, y);
 
             ThisCanvas.Children.Add(newRect);
-
 
             // Collect Garbage
             GC.Collect(); // collect any unused resources for this game
@@ -46,8 +52,12 @@ namespace Basic_Game_2
 
     }
 
+    // Draw Health Bar
     public class DrawHealthBar
     {
+
+        public ProgressBar Self;
+
         public DrawHealthBar(int TotalEnemy, double health, double enemyWidth, List<ProgressBar> healthBarList, int x, int y, Canvas PlayerSpace)
         {
 
@@ -61,7 +71,7 @@ namespace Basic_Game_2
                 Value = health
             };
 
-            healthBarList.Add(newHealthbar);
+            Self = newHealthbar;
 
             Canvas.SetLeft(newHealthbar, x - (enemyWidth / 2));
             Canvas.SetTop(newHealthbar, y);
@@ -73,6 +83,7 @@ namespace Basic_Game_2
         }
     }
 
+    // Draw Boss Health
     public class DrawBossHealthBar
     {
         public DrawBossHealthBar(double health, List<ProgressBar> healthBarList, Canvas PlayerSpace)
@@ -100,7 +111,7 @@ namespace Basic_Game_2
 
 
 
-
+    // Fill Object
     public class FillDraw
     {
         public FillDraw(string imageName, Rectangle ThisObject)
@@ -116,6 +127,7 @@ namespace Basic_Game_2
         }
     }
 
+    // Draw Textblock
     public class DrawTextBlock
     {
         public DrawTextBlock(string tagName, int height, int width, int x, int y, int size, string text, Canvas PlayerSpace)

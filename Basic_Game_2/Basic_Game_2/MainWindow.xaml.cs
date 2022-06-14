@@ -1,16 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
@@ -19,6 +12,14 @@ namespace Basic_Game_2
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
+    /// 
+    /// 
+    /// The Tag System doonmed me
+    /// At first the major thing is searching through the canvas for a rectnagle with the same tag and then pair that with the object in the array
+    /// However this is inefficent and I found that can push the rectangle onto the object in the array
+    /// However this is not a full solution since many of the functions require searching through the canvas to find and object. There is jank between remvoing object on canvas vs list
+    /// Therefore, unless I want to rewrite everything (AGAIN) I will just stick with this most of the time
+    /// 
     /// </summary>
     public partial class MainWindow : Window
     {
@@ -59,15 +60,14 @@ namespace Basic_Game_2
         // A list that stores all the current walls
         public List<WallMaker> wallStats = new();
 
+        public List<ProgressBar> healthBarList = new();
+
         // List of MiniMap
         public List<WallMaker> listStats = new();
         public List<WallMaker> hiddenStats = new();
 
         // List of enemies
         public List<EnemyMaker> enemyList = new();
-
-        // List of enemies
-        public List<ProgressBar> healthBarList = new();
 
         // A list that stores all the current enemies
         public List<ItemMaker> itemStats = new();
@@ -117,6 +117,8 @@ namespace Basic_Game_2
         // The Stats that involve the current player dirrection and the 'old' dirrection of where the player faced before activating something
         public string oldDirrection = "none";
 
+
+        // When the Game Starts
         public MainWindow()
         {
 
@@ -238,6 +240,7 @@ namespace Basic_Game_2
             CheckIfAlldead();
 
             // Delete Weapon if dead
+            // This really doesn't need to run every frame
             DeleteWeaponIfDead();
 
             // Save the game
@@ -249,8 +252,8 @@ namespace Basic_Game_2
 
 
 
-        // The Lazy way because fuck it
-
+        // Delete weapon of enemy if they are dead
+        // This really doesn't need to be run every frame
         public void DeleteWeaponIfDead()
         {
 
@@ -259,11 +262,11 @@ namespace Basic_Game_2
 
                 if (enemyStats[i].health <= 0)
                 {
-                    foreach (Rectangle z in ItemSpace.Children.OfType<Rectangle>())
+                    foreach (Rectangle x in ItemSpace.Children.OfType<Rectangle>())
                     {
-                        if ((string)z.Tag == $"enemymelee-{i}" || (string)z.Tag == $"enemyranged-{i}")
+                        if ((string)x.Tag == $"enemymelee-{i}" || (string)x.Tag == $"enemyranged-{i}")
                         {
-                            itemstoremove.Add(z);
+                            itemstoremove.Add(x);
                         }
                     }
 
@@ -273,32 +276,38 @@ namespace Basic_Game_2
 
         }
 
-
-
-
-
-
-
-
-
+        // Move Enemy
         public void EnemyMoverAndAttacker(Rect PlayerHitbox)
         {
             if (enemyStats.Count > 0)
             {
+
+                // Move Enemy
                 EnemyMovement(PlayerHitbox);
+
+                // Attack Enemy / Player
                 PlayerAttackEnemy(PlayerHitbox);
 
+
+                // Enemy Create Weapon or Not
                 for (int i = 0; i < enemyStats.Count; i++)
                 {
+
+                    // Enemy reaction time to attack
+                    // If the enemy can attack and weapon is not created and is not ranged
                     if (enemyStats[i].AllowWeapon == true && enemyStats[i].WeaponCreated == false && !enemyStats[i].ranged)
                     {
-
+                        // Reaction Time for Enemy
                         enemyStats[i].reaction++;
 
+                        // If the reaction time is complete
                         if (enemyStats[i].reaction > enemyStats[i].reactionTime)
                         {
+
+                            // Complete Enemy Weapon
                             enemyStats[i].WeaponCreated = weapon.CreateWeapon(enemyStats[i].currentDirrection, ItemSpace, $"enemymelee-{enemyStats[i].thisCount}", enemyStats[i].weapon);
 
+                            // Set reaction back to 0
                             enemyStats[i].reaction = 0;
 
                         }
@@ -308,35 +317,39 @@ namespace Basic_Game_2
                     foreach (Rectangle x in ItemSpace.Children.OfType<Rectangle>())
                     {
 
+                        // if the weapon is from an enemy
                         if ((string)x.Tag == $"enemymelee-{i}" || (string)x.Tag == $"enemyranged-{i}")
                         {
 
-                            foreach (Rectangle y in ItemSpace.Children.OfType<Rectangle>())
+                            // Get Enemy
+                            if ((string)enemyStats[i].self.Tag == $"enemy-{i}")
                             {
-                                if ((string)y.Tag == $"enemy-{i}")
+
+                                // Follow Enemy
+                                weapon.FollowPlayer(x, enemyStats[i].self, enemyStats[i].WeaponCreated, enemyStats[i].currentDirrection);
+
+                                // If the fire rate is complete then delete it
+                                if (enemyStats[i].firerate < enemyStats[i].innerFrame)
                                 {
-                                    EnemySwordAttack(enemyStats[i].weapon, enemyStats[i], y, x, i);
-
-                                    if (enemyStats[i].firerate < enemyStats[i].innerFrame)
-                                    {
-                                        enemyStats[i].innerFrame = 0;
-                                        enemyStats[i].AllowWeapon = false;
-                                        itemstoremove.Add(x);
-                                        enemyStats[i].WeaponCreated = false;
-                                    }
-                                    else
-                                    {
-                                        enemyStats[i].innerFrame++;
-                                    }
+                                    enemyStats[i].innerFrame = 0;
+                                    enemyStats[i].AllowWeapon = false;
+                                    itemstoremove.Add(x);
+                                    enemyStats[i].WeaponCreated = false;
                                 }
-
+                                else
+                                {
+                                    enemyStats[i].innerFrame++;
+                                }
                             }
 
 
+
                         }
-
-
                     }
+
+
+
+
 
 
 
@@ -347,6 +360,7 @@ namespace Basic_Game_2
         }
 
 
+        // Attack Eachother
         public void PlayerAttackEnemy(Rect PlayerHitbox)
         {
 
@@ -359,15 +373,17 @@ namespace Basic_Game_2
                     {
                         var Enemy = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
 
-
+                        // Check if player takes damage
                         PlayerTakeDamage(Enemy, PlayerHitbox, i, x);
 
 
+                        // Check if the enemy weapon hits player
                         foreach (Rectangle y in ItemSpace.Children.OfType<Rectangle>())
                         {
                             if ((string)y.Tag == $"enemymelee-{i}" || (string)y.Tag == $"enemyranged-{i}")
                             {
                                 var Weapon = new Rect(Canvas.GetLeft(y), Canvas.GetTop(y), y.Width, y.Height);
+
 
                                 PlayerTakeDamage(Weapon, PlayerHitbox, i, x);
 
@@ -375,14 +391,19 @@ namespace Basic_Game_2
                             }
 
 
-
+                            // Check the player weapon
                             if ((string)y.Tag == "melee" || (string)y.Tag == "ranged")
                             {
                                 var Weapon = new Rect(Canvas.GetLeft(y), Canvas.GetTop(y), y.Width, y.Height);
 
+                                // if the weapon hits the enemy
                                 if (Weapon.IntersectsWith(Enemy))
                                 {
+
+                                    // Calculate damage delt to enemy
                                     currentPlayer = enemyStats[i].calculateDamage(playerList[currentPlayer], x, oldDirrection, LogBox, UpdateUi, ScrollBar, healthBarList[i], PlayerSpace, ItemSpace, currentPlayer, PlayerUiBox, enemyStats, i);
+
+                                    // Check if enemy is dead
                                     enemyStats[i].checkIfDead(itemstoremove, progressstoremove, x, healthBarList[i], ItemSpace, i);
                                 }
 
@@ -396,6 +417,7 @@ namespace Basic_Game_2
         }
 
 
+        // If the enemy touches the player and invisibility frames are over
         public void PlayerTakeDamage(Rect ThisAttack, Rect PlayerHitbox, int enemyTarget, Rectangle MoveRectangle)
         {
 
@@ -423,6 +445,8 @@ namespace Basic_Game_2
         {
 
 
+
+            // Check for enemy and check if bullet deals damage to them
             foreach (Rectangle x in ItemSpace.Children.OfType<Rectangle>())
             {
                 for (int i = 0; i < enemyStats.Count; i++)
@@ -453,7 +477,7 @@ namespace Basic_Game_2
 
                 }
 
-
+                // if the bullet hits a wall
                 if ((string)x.Tag == "wall" || (string)x.Tag == "water" || x.Name == "crate" || x.Name == "crate2" || x.Name == "crate3" || x.Name == "door" || x.Name == "fakewall" || x.Name == "statue" || x.Name == "table" || x.Name == "chair")
                 {
                     var Wall = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
@@ -488,7 +512,7 @@ namespace Basic_Game_2
         }
 
 
-
+        // Check if all players are dead
         public void CheckIfAlldead()
         {
 
@@ -502,7 +526,7 @@ namespace Basic_Game_2
             }
         }
 
-
+        // Transport to next room
         public void transportNextRoom()
         {
 
@@ -517,7 +541,7 @@ namespace Basic_Game_2
         }
 
 
-
+        // gain mp based on mp gained
         public void MpGain()
         {
             for (int i = 0; i < playerList.Count; i++)
@@ -534,13 +558,14 @@ namespace Basic_Game_2
 
 
 
-
+        // Apply boon to player
         public void ApplyBoon(BoonMaker NewBoon)
         {
 
             // fix this later
             var x = NewBoon;
 
+            // Apply stat changes
             playerList[currentPlayer].health += x.healthCost;
             playerList[currentPlayer].mp += x.mpCost;
             playerList[currentPlayer].healthMax += x.healthMaxCost;
@@ -559,6 +584,8 @@ namespace Basic_Game_2
 
         }
 
+
+        // if the health is above the max health, set health to max health
         public void SetHealthToMax(int select)
         {
             if (playerList[select].health > playerList[select].healthMax)
@@ -569,7 +596,7 @@ namespace Basic_Game_2
 
 
 
-
+        // Interact with Items
         public void itemInteract(Rect PlayerHitBox, WeaponMaker CurrentWeapon, List<BoonMaker> CurrentBoon)
         {
             bool exit = false;
@@ -581,49 +608,71 @@ namespace Basic_Game_2
                 {
                     if ((string)x.Tag == $"item-{i}")
                     {
+
+
+                        // increases player hit box so that the player doesn't actually have to touch the item and might go in it
                         Rect item = new Rect(Canvas.GetLeft(x) - 10, Canvas.GetTop(x) - 10, x.Width + 20, x.Height + 20);
 
+
+                        // If the newly expanded hitbox interacts with items
                         if (PlayerHitBox.IntersectsWith(item))
                         {
 
-                            if (itemStats[i].isChest == "none")
+
+                            // If this is a chest
+                            if (itemStats[i].isChest == "none") // No
                             {
+
+                                // Delete Item
                                 itemStats[i].takeDamage(100);
+
+                                // Save this change
                                 SaveMap(x, "0");
+
+                                // Give item to player
                                 GiveItems(i);
                             }
-                            else if (itemStats[i].isChest == "door" && Keyboard.IsKeyDown(Key.Enter))
+                            else if (itemStats[i].isChest == "door" && Keyboard.IsKeyDown(Key.Enter)) // Is Door
                             {
+
+                                // if there is enough keys
                                 if (key > 0)
                                 {
+
+                                    // Subtract keys
                                     key -= 1;
 
+                                    // Delete Item
                                     itemStats[i].takeDamage(100);
+
+                                    // Save this change
                                     SaveMap(x, "0");
+
+                                    // Give items
                                     GiveItems(i);
 
                                 }
 
                             }
-                            else if (itemStats[i].isChest == "crate" && Keyboard.IsKeyDown(Key.Enter))
+                            else if (itemStats[i].isChest == "crate" && Keyboard.IsKeyDown(Key.Enter)) // is a weapon crate
                             {
                                 WeaponChestOpen(i, x, CurrentWeapon);
                             }
-                            else if (itemStats[i].isChest == "crate2" && Keyboard.IsKeyDown(Key.Enter))
+                            else if (itemStats[i].isChest == "crate2" && Keyboard.IsKeyDown(Key.Enter)) // is a boon crate 
                             {
                                 BoonChestOpen(i, x, CurrentBoon);
                             }
-                            else if (itemStats[i].isChest == "crate3" && Keyboard.IsKeyDown(Key.Enter))
+                            else if (itemStats[i].isChest == "crate3" && Keyboard.IsKeyDown(Key.Enter)) // is a health crate
                             {
                                 HealthChestOpen(i, x);
                             }
-                            else if (itemStats[i].isChest == "exit" && Keyboard.IsKeyDown(Key.Enter))
+                            else if (itemStats[i].isChest == "exit" && Keyboard.IsKeyDown(Key.Enter)) // is an exit
                             {
                                 exit = true;
                             }
 
 
-
+                            // Check if the item was used
                             itemStats[i].checkIfDead(itemstoremove, x);
 
                         }
@@ -632,6 +681,7 @@ namespace Basic_Game_2
                 }
             }
 
+            // If the exit is used, exit the map (not room, but to an entirely new map)
             if (exit)
             {
                 ExitTheMap();
@@ -639,6 +689,7 @@ namespace Basic_Game_2
 
         }
 
+        // Exit to a new map
         public void ExitTheMap()
         {
             // Clear All Canvases
@@ -676,21 +727,28 @@ namespace Basic_Game_2
 
 
 
-
+        // If the health chest is opem
         public void HealthChestOpen(int i, Rectangle x)
         {
             if (MessageBox.Show($"Do you really want to open the health box? Only the current player you're selecting will get it and that player will get a random set of health.", "Confirmation", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
+
+                // Increase Health
                 playerList[currentPlayer].health += itemStats[i].dropItem.healthAmount;
 
+                // Give these items
                 GiveItems(i);
 
+                // Delete this item
                 itemStats[i].takeDamage(100);
 
+                // Save this
                 SaveMap(x, "0");
 
+                // Show that health increased
                 LogBox.Text += $"{playerList[currentPlayer].name} got {itemStats[i].dropItem.healthAmount} health! \n";
 
+                // Update the UI to show this
                 UpdateUi();
                 ScrollBar.ScrollToEnd();
 
@@ -699,11 +757,13 @@ namespace Basic_Game_2
         }
 
 
+        // if boon chest is opened
         public void BoonChestOpen(int i, Rectangle x, List<BoonMaker> CurrentBoon)
         {
             if (MessageBox.Show($"Do you really want to open the boon box? Only the current player you're selecting will get it and you will only have once chance to accept or get rid of it! A boon cannot be removed. You will also have to pay {itemStats[i].dropItem.coinAmount * -1} coins and you have {coin} coins!", "Confirmation", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
 
+                // Get a new boon
                 BoonMaker NewBoon = boonList[itemStats[i].dropItem.thisBoon];
 
                 if (coin >= itemStats[i].dropItem.coinAmount * -1)
@@ -711,18 +771,26 @@ namespace Basic_Game_2
                     // This looses coins
                     GiveItems(i);
 
+                    // Delete chest
                     itemStats[i].takeDamage(100);
+
+                    // Show this change
                     SaveMap(x, "0");
 
 
                     if (MessageBox.Show($"Do want this boon? \n {NewBoon.boonName} \n {NewBoon.boonType} \n {NewBoon.boonDescription}", "Confirmation", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
+
+                        // Add to current boon
                         CurrentBoon.Add(NewBoon);
 
+                        // Apply Boon Stats
                         ApplyBoon(NewBoon);
 
+                        // Change Text
                         LogBox.Text += $"{playerList[currentPlayer].name} got a {NewBoon.boonName} \n";
 
+                        // Change UI
                         UpdateUi();
                         ScrollBar.ScrollToEnd();
 
@@ -736,12 +804,12 @@ namespace Basic_Game_2
             }
         }
 
-
+        // if the weapon chest is opened
         public void WeaponChestOpen(int i, Rectangle x, WeaponMaker CurrentWeapon)
         {
             if (MessageBox.Show($"Do you really want to open the weapon box? Only the current player you're selecting will get it and you will only have once chance to accept or get rid of it! You will also have to pay {itemStats[i].dropItem.coinAmount * -1} coins and you have {coin} coins!", "Confirmation", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
             {
-                if (coin >= itemStats[i].dropItem.coinAmount * -1)
+                if (coin >= itemStats[i].dropItem.coinAmount * -1) // if player has enough coins
                 {
 
                     // This looses coins
@@ -751,11 +819,11 @@ namespace Basic_Game_2
                     SaveMap(x, "0");
 
                     // get weapon based on dropped item
-
                     WeaponMaker NewWeapon = new(weaponList[itemStats[i].dropItem.weapon].name, weaponList[itemStats[i].dropItem.weapon].imageName, weaponList[itemStats[i].dropItem.weapon].damage, weaponList[itemStats[i].dropItem.weapon].damageType, weaponList[itemStats[i].dropItem.weapon].height, weaponList[itemStats[i].dropItem.weapon].width, weaponList[itemStats[i].dropItem.weapon].knockBack, weaponList[itemStats[i].dropItem.weapon].type, weaponList[itemStats[i].dropItem.weapon].range, weaponList[itemStats[i].dropItem.weapon].mpUsage, weaponList[itemStats[i].dropItem.weapon].mpUsage, weaponList[itemStats[i].dropItem.weapon].magicType, weaponList[itemStats[i].dropItem.weapon].bulletType, weaponList[itemStats[i].dropItem.weapon].bulletUsage);
 
                     Random rand = new();
 
+                    // Random Stats
                     NewWeapon.damage += rand.Next(0, 50 + difficulty[4]);
                     NewWeapon.width += rand.Next(0, 25);
                     NewWeapon.height += rand.Next(0, 25);
@@ -764,10 +832,13 @@ namespace Basic_Game_2
                     if (MessageBox.Show($"Do you Want this Weapon? \n Current Weapon:{CurrentWeapon.name} \n Damage:{CurrentWeapon.damage} \n Type:{CurrentWeapon.damageType} and {CurrentWeapon.type} \n Height: {CurrentWeapon.height} \n Width: {CurrentWeapon.width} \n Knockback: {CurrentWeapon.knockBack} \n" + " vs " + $"\n New Weapon:{NewWeapon.name} \n Damage:{NewWeapon.damage} \n Type:{NewWeapon.damageType} and {NewWeapon.type} \n Height: {NewWeapon.height} \n Width: {NewWeapon.width} \n Knockback: {NewWeapon.knockBack} \n", "Confirmation", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
 
+                        // Player get new weapon
                         playerList[currentPlayer].weapon = NewWeapon;
 
+                        // Change text
                         LogBox.Text += $"{playerList[currentPlayer].name} got a {playerList[currentPlayer].weapon.name}! \n";
 
+                        // Show UI change
                         UpdateUi();
                         ScrollBar.ScrollToEnd();
                     };
@@ -783,7 +854,7 @@ namespace Basic_Game_2
         }
 
 
-
+        // Give Items
         public void GiveItems(int i)
         {
             coin += itemStats[i].dropItem.coinAmount;
@@ -795,29 +866,32 @@ namespace Basic_Game_2
             UpdateItemCount();
         }
 
+        // Show this change
         public void UpdateItemCount()
         {
             TotalPartyInv.Text = $" Coin: {coin} \n Ammo: {ammo} \n Holy Cross: {holyCross} \n Key: {key} \n Bomb:{bomb}";
         }
 
-
+        // Update UI
         public void UpdateUi()
         {
 
             for (int i = 0; i < playerList.Count; i++)
             {
 
+                // Set health to max
                 SetHealthToMax(i);
 
-
+                // Show the current stats of the players
                 string description = $"\n Name: {playerList[i].name} the {playerList[i].playerClass} \n Health:{playerList[i].health}/{playerList[i].healthMax} \n Mp:{playerList[i].mp}/{playerList[i].mpMax} \n Phys:{playerList[i].phys} \n Magic: {playerList[i].magic} \n Gun: {playerList[i].gun} \n Phys Def: {playerList[i].phys} \n Magic Def: {playerList[i].magDef} \n Speed: {playerList[i].speed} \n Mp Regen: {playerList[i].mpRegen} \n Size: {playerList[i].size} \n Weapon: {playerList[i].weapon.name} \n Boon: ";
 
-
+                // Show the boons
                 foreach (BoonMaker x in playerList[i].playerBoons.OfType<BoonMaker>())
                 {
                     description += x.boonName;
                 }
 
+                // Show the text and description
                 foreach (TextBlock x in PlayerUiBox.Children.OfType<TextBlock>())
                 {
                     if ((string)x.Tag == "Text-" + i)
@@ -837,7 +911,7 @@ namespace Basic_Game_2
 
 
 
-
+    // Player Ui Class
     public class PlayerUi
     {
         public string description;
@@ -856,13 +930,8 @@ namespace Basic_Game_2
 
     }
 
-    interface NoisePlayer
-    {
-        void walkingSound();
-    }
-
-
-
+ 
+    // Wall Class
     public class WallMaker
     {
         public double health;
@@ -894,7 +963,7 @@ namespace Basic_Game_2
 
     }
 
-
+    // item class
     public class ItemMaker
     {
         private double health;

@@ -53,6 +53,8 @@ namespace Basic_Game_2
         private void Button_Click(object sender, RoutedEventArgs e)
         {
 
+
+            // Make a player if there are less than 4 players total
             if (playerList.Count < 4)
             {
 
@@ -62,20 +64,25 @@ namespace Basic_Game_2
                 // Search for name
                 for (int i = 0; i < classMakerList.Count; i++)
                 {
+
+                    // Create the player and add the class bonus based on the class chosen
                     if (className == $"System.Windows.Controls.ComboBoxItem: " + classMakerList[i].className)
                     {
                         playerList.Add(new PlayerMaker(GetName.Text, classMakerList[i].className, 100 + classMakerList[i].classHealth, 100 + classMakerList[i].classMp, 100 + classMakerList[i].classHealthMax, 100 + classMakerList[i].classMpMax, 25 + classMakerList[i].classSize, classMakerList[i].classWeapon, 0 + classMakerList[i].classPhys, 0 + classMakerList[i].classMagic, 0 + classMakerList[i].classMagic, 10 + classMakerList[i].classPhysDef, 10 + classMakerList[i].classMagDef, 4 + classMakerList[i].classSpeed, 1 + classMakerList[i].classMpRegen, 20 + classMakerList[i].invisibiltyFrames));
                     }
                 }
 
+                // Show the stats
                 string description = $"\n Name: {playerList[currentPlayer].name} the {playerList[currentPlayer].playerClass} \n Health:{playerList[currentPlayer].health}/{playerList[currentPlayer].healthMax} \n Mp:{playerList[currentPlayer].mp}/{playerList[currentPlayer].mpMax} \n Phys:{playerList[currentPlayer].phys} \n Magic: {playerList[currentPlayer].magic} \n Gun: {playerList[currentPlayer].gun} \n Phys Def: {playerList[currentPlayer].phys} \n Magic Def: {playerList[currentPlayer].magDef} \n Speed: {playerList[currentPlayer].speed} \n Mp Regen: {playerList[currentPlayer].mpRegen} \n Size: {playerList[currentPlayer].size} \n Weapon: {playerList[currentPlayer].weapon.name} \n Boons: ";
 
+
+                // Show the boons the player has
                 foreach (BoonMaker x in playerList[currentPlayer].playerBoons.OfType<BoonMaker>())
                 {
                     description += x.boonName;
                 }
 
-                
+                // Change the text of the textblock repersenting the player
                 foreach (TextBlock x in TitleSpace.Children.OfType<TextBlock>())
                 {
                     if (x.Name == $"CurrentPlayersBlock{playerList.Count}")
@@ -84,6 +91,7 @@ namespace Basic_Game_2
                     }
                 }
 
+                // Add this is the UI
                 uiList.Add(new PlayerUi(description, currentPlayer, PlayerUiBox, playerList));
 
                 currentPlayer++;
@@ -95,6 +103,8 @@ namespace Basic_Game_2
 
         }
 
+
+        // Get class if selected
         private void classSelect_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             string className = classSelect.SelectedValue.ToString();
@@ -109,6 +119,8 @@ namespace Basic_Game_2
             }
         }
 
+
+        // Start Game if all 4 players are created
         private void StartingGame(object sender, RoutedEventArgs e)
         {
 

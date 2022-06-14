@@ -7,18 +7,28 @@ namespace Basic_Game_2
 
     public partial class MainWindow : Window
     {
+
+        // Chdck timer
         public void CheckTimer()
         {
+
+            // Change the current timer bar to show the timer stat
             TimerBar.Value = timer;
 
+            //If the timer is above the max timer
             if (timer > maxTimer)
             {
+
+                // Increase difficulty
                 difficulty[0]++;
+
+                // Change the difficulty
                 ChangeDifficultyValues(difficulty[0], maxTimer);
 
             }
         }
 
+        // Only used once when the timer runs out
         public void ChangeDifficultyValues(int change, int maximum)
         {
             // Enemy Health
@@ -31,8 +41,10 @@ namespace Basic_Game_2
             // Weapon Damage
             difficulty[4] = change * 20;
 
+            // Show the difficulty text
             DifficultyBlock.Text = "Difficulty: " + change;
 
+            // If the difficulty is 1,2,3, change max timer and background of the timer
             if (difficulty[0] == 1)
             {
                 maxTimer = 5000;
@@ -53,9 +65,10 @@ namespace Basic_Game_2
 
             }
 
-
+            // Change max timer
             TimerBar.Maximum = maximum;
 
+            // Timer is now 0
             timer = 0;
 
         }

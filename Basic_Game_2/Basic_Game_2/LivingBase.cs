@@ -39,32 +39,51 @@ namespace Basic_Game_2
         public bool[] ifTouchWall = { false, false, false, false };
 
 
+        // ifTouchWall[0] is up
+        // if ifTouchWall[1] is down
+        // ifTouchWall[2] is left
+        // ifTouchWall[3] is right
+
+
+        // Take Damage to this living thing
         public int TakeDamage(double damage, string Attacker, int currentPlayer, TextBlock LogBox, Action UpdateUi, Canvas PlayerUiBox, ScrollViewer ScrollBar, ProgressBar CurrentProgressBar)
         {
+
+            // Deal this damage
             this.health -= damage;
 
+            // Show the damage dealt
             LogBox.Text += $"{Attacker} did {damage} damage to {name}!";
 
+
+            // if the health is bellow 0, say that they are dead
             if (health < 0)
             {
                 LogBox.Text += $"{Attacker} killed the {name}! \n";
             }
 
-            if (PlayerOrEnemy)
+
+            // if it is a player
+            if (PlayerOrEnemy) // Player
             {
+                // Check if player is dead
                 currentPlayer = CheckDeath(PlayerUiBox, LogBox, Attacker, currentPlayer);
             }
-            else
+            else // Enemy
             {
+                // Change progress bar of enemy health bar
                 CurrentProgressBar.Value = health;
             }
 
+            // Show UI change
             UpdateUi();
             ScrollBar.ScrollToEnd();
 
             return currentPlayer;
         }
 
+
+        // Check if player is dead
         public int CheckDeath(Canvas PlayerUiBox, TextBlock LogBox, string Attacker, int currentPlayer)
         {
             if (health <= 0)
@@ -86,13 +105,15 @@ namespace Basic_Game_2
             return currentPlayer;
         }
 
-
+        // Change movement based on player
         public void basic_movement(Rectangle Self, Rectangle Other, string type, Canvas PlayerSpace, Canvas ItemSpace)
         {
 
-            if (type == "PLAYER")
+            // If this type is...
+            if (type == "PLAYER") // PLAYER
             {
 
+                // move based on arrow keys
                 if (Keyboard.IsKeyDown(Key.Left) && ifTouchWall[2] == false)
                 {
 
@@ -129,6 +150,7 @@ namespace Basic_Game_2
 
                 }
 
+                // Check if colliding with wall
                 CheckIfWallCollide(Self, PlayerSpace);
                 CheckIfWallCollide(Self, ItemSpace);
 
@@ -168,6 +190,8 @@ namespace Basic_Game_2
                 CheckIfWallCollide(Self, PlayerSpace);
                 CheckIfWallCollide(Self, ItemSpace);
 
+
+                // Move enemy on canvas
                 Enemy_movement(Self, Other, speedX, speedY, type);
 
             }
@@ -175,7 +199,10 @@ namespace Basic_Game_2
             double moveLeft = speedX;
             double moveUp = speedY;
 
-            if (type == "PLAYER")
+
+
+            // if the type is a player, then move this way
+            if (type == "PLAYER") // Move player on canvas
             {
 
                 if (ifTouchWall[0] == false && currentDirrection == "up")
@@ -206,6 +233,9 @@ namespace Basic_Game_2
 
         public void Enemy_movement(Rectangle Self, Rectangle Other, double moveLeft, double moveUp, string type)
         {
+
+            // change how the enemy moves based on type
+
             if (type == "ENEMY_ZOMBIE")
             {
 
@@ -274,7 +304,7 @@ namespace Basic_Game_2
         }
 
 
-
+        // Check if player collides with a wall
         public void CheckIfWallCollide(Rectangle Self, Canvas ThisOne)
         {
             foreach (Rectangle x in ThisOne.Children.OfType<Rectangle>())
@@ -306,6 +336,8 @@ namespace Basic_Game_2
                     }
                     else if (currentDirrection == "down")
                     {
+
+                        // Check if it hits the down box and stop player from entering it by speed and momentum of player
                         Rect downBox = new Rect(Canvas.GetLeft(Self), Canvas.GetTop(Self) + Math.Abs(speedY), Self.Width, Self.Height);
 
 
@@ -320,6 +352,8 @@ namespace Basic_Game_2
                     }
                     else if (currentDirrection == "left")
                     {
+
+                        // Check if it hits the left box and stop player from entering it by speed and momentum of player
                         Rect leftBox = new Rect(Canvas.GetLeft(Self) - Math.Abs(speedX), Canvas.GetTop(Self), Self.Width, Self.Height);
 
                         if ((leftBox).IntersectsWith(Wall))
@@ -335,6 +369,8 @@ namespace Basic_Game_2
                     }
                     else if (currentDirrection == "right")
                     {
+
+                        // Check if it hits the right box and stop player from entering it by speed and momentum of player
                         Rect rightBox = new Rect(Canvas.GetLeft(Self) + Math.Abs(speedX), Canvas.GetTop(Self), Self.Width, Self.Height);
 
 
@@ -353,6 +389,7 @@ namespace Basic_Game_2
         }
 
 
+        // Check when the thing is knocked back
         public void KnockBack(Canvas PlayerSpace, Canvas ItemSpace, Rectangle Self, string knockback_dirrection, double knockback)
         {
 
@@ -381,7 +418,7 @@ namespace Basic_Game_2
         }
 
 
-
+        // Enemy knock back checker but this is in general, bad naming
         public bool[] EnemyKnockBackChcker(Canvas ThisSpace, Rectangle EnemyPosition, string dirrection, double changeBy, bool[] ifTouchWall)
         {
 
@@ -399,7 +436,7 @@ namespace Basic_Game_2
                     {
 
 
-                        // Check if it hits the above box and stop player from entering it by speed and momentum of player
+                        // Check if it hits the above box and stop player from entering it by knockback
                         Rect upBox = new Rect(Canvas.GetLeft(EnemyPosition), Canvas.GetTop(EnemyPosition) - Math.Abs(changeBy), EnemyPosition.Width, EnemyPosition.Height);
 
 
@@ -416,6 +453,8 @@ namespace Basic_Game_2
                     }
                     else if (dirrection == "down")
                     {
+
+                        // Check if it hits the down box and stop player from entering it by knockback
                         Rect downBox = new Rect(Canvas.GetLeft(EnemyPosition), Canvas.GetTop(EnemyPosition) + Math.Abs(changeBy), EnemyPosition.Width, EnemyPosition.Height);
 
 
@@ -429,6 +468,8 @@ namespace Basic_Game_2
                     }
                     else if (dirrection == "left")
                     {
+
+                        // Check if it hits the left box and stop player from entering it by knockback
                         Rect leftBox = new Rect(Canvas.GetLeft(EnemyPosition) - Math.Abs(changeBy), Canvas.GetTop(EnemyPosition), EnemyPosition.Width, EnemyPosition.Height);
 
                         if ((leftBox).IntersectsWith(Wall))
@@ -442,6 +483,8 @@ namespace Basic_Game_2
                     }
                     else if (dirrection == "right")
                     {
+
+                        // Check if it hits the right box and stop player from entering it by knockback
                         Rect rightBox = new Rect(Canvas.GetLeft(EnemyPosition) + Math.Abs(changeBy), Canvas.GetTop(EnemyPosition), EnemyPosition.Width, EnemyPosition.Height);
 
 

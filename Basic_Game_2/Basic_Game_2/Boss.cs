@@ -19,7 +19,7 @@ namespace Basic_Game_2
         // Hand
         public List<HandMaker> HandMakerList = new();
 
-
+        // Make arm pusher box
         public void MakeArmPusherBoss()
         {
             // Heads
@@ -33,6 +33,7 @@ namespace Basic_Game_2
             HandMakerList.Add(new HandMaker(1, 20, 505, 80, "BossHand2", ItemSpace));
         }
 
+        // arm pusher boss logic
         public void ArmPusherBossLogic(Rect PlayerHitbox)
         {
             // Move Hand
@@ -56,22 +57,26 @@ namespace Basic_Game_2
                 }
             }
 
-
+            // If laser is fired
             if (HeadMakerList[0].fired)
             {
                 // Laser Follow Player
                 HeadMakerList[0].FollowLaser(BulletCanvas, ItemSpace);
                 HeadMakerList[0].LaserTimer++;
 
+                // if laser timer is over
                 if (HeadMakerList[0].LaserTimer > 100)
                 {
                     foreach (Rectangle z in BulletCanvas.Children.OfType<Rectangle>())
                     {
                         if ((string)z.Tag == "laser")
                         {
+
+                            // remove the laser
                             itemstoremove.Add(z);
                             HeadMakerList[0].fired = false;
                             HeadMakerList[0].LaserTimer = 0;
+
                         }
                     }
                 }
@@ -89,6 +94,8 @@ namespace Basic_Game_2
         }
 
 
+
+        // Update Boss Health when Damaged
         public void UpdateBossHealthBar()
         {
 
@@ -106,7 +113,7 @@ namespace Basic_Game_2
 
     }
 
-
+    // Arm Boss
     public class ArmBoss
     {
         public double health = 1200;
@@ -129,6 +136,8 @@ namespace Basic_Game_2
             _ = new Draw("BossHead", 160, 160, 250, 150, "frog", "Boss", ItemSpace);
         }
 
+
+        // Moving head
         public void MoveHead(Canvas ItemSpace, Rectangle Player)
         {
             foreach (Rectangle x in ItemSpace.Children.OfType<Rectangle>())
@@ -156,40 +165,57 @@ namespace Basic_Game_2
         }
 
 
+        // Check for damage
         public void CheckForDamage(Canvas ItemSpace, WeaponMaker PlayerWeapon, Action UpdateBossHealthBar, List<EnemyMaker> enemyStats, List<BulletMaker> bulletList, int[] difficulty, List<ProgressBar> healthBarList, List<WeaponMaker> enemyWeaponList, Rect PlayerHitbox, List<PlayerMaker> playerList, int currentPlayer, bool PlayerIsHit)
         {
 
+            // if enemy is spawned
             bool spawnEnemy = false;
 
             foreach (Rectangle x in ItemSpace.Children.OfType<Rectangle>())
             {
                 if ((string)x.Tag == "BossHead")
                 {
+
+                    // enemy hits box
                     var Enemy = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
 
                     foreach (Rectangle y in ItemSpace.Children.OfType<Rectangle>())
                     {
 
+                        // if the player weapon is created
                         if ((string)y.Tag == "melee" || (string)y.Tag == "ranged")
                         {
+
+                            // create weapon hit box
                             var Weapon = new Rect(Canvas.GetLeft(y), Canvas.GetTop(y), y.Width, y.Height);
 
+
+                            // if the weapon hits the enemy
                             if (Enemy.IntersectsWith(Weapon))
                             {
+
+                                // Deal damage to health
                                 health -= PlayerWeapon.damage;
 
+                                // Update the boss health bar
                                 UpdateBossHealthBar();
 
+                                // Set up Random
                                 Random rand = new();
 
+                                // teleport random
                                 int teleportY = rand.Next(135, 345);
                                 int teleportX = rand.Next(105, 475);
 
+                                // set this to random
                                 Canvas.SetTop(x, teleportY);
                                 Canvas.SetLeft(x, teleportX);
 
+                                // check if the boss is dead
                                 CheckIfDead();
 
+                                // spawns a new enemy
                                 spawnEnemy = true;
                             }
 
@@ -200,16 +226,21 @@ namespace Basic_Game_2
 
             }
 
+
+            // if an enemy is spawned
             if (spawnEnemy)
             {
+                // create a vision cone
                 double[] visionCone = { 1000, 1000 };
 
+                // add this enemy
                 enemyStats.Add(new EnemyMaker("slime", "slime", $"enemy-{enemyStats.Count - 1}", "slime", "zombie", 75, 0, 75, 0, 0, 25, enemyWeaponList[0], 30, 0, 0, 50, 0, 4, 0, 40, 30, visionCone, false, 10, 10, enemyStats.Count, healthBarList, 25, new(10, 0, 0, 0, 0, 0, 0, 0, 0), bulletList[0], ItemSpace));
             }
 
         }
 
 
+        // if dead
         public void CheckIfDead()
         {
             if (health <= 0)
@@ -218,13 +249,13 @@ namespace Basic_Game_2
                 MessageBox.Show("You Won The Game!!!");
 
 
-                // EndGame();
+                //EndGame();
             }
         }
 
 
 
-
+        // Fire Laser
         public void LaserFire(Canvas ItemSpace, Canvas BulletCanvas, List<HandMaker> HandMakerList)
         {
 
@@ -236,6 +267,7 @@ namespace Basic_Game_2
             {
                 if ((string)z.Tag == "BossHands1")
                 {
+                    // find laser and then create here
                     x = Convert.ToInt32(Canvas.GetLeft(z)) + 40;
                     y = Convert.ToInt32(Canvas.GetTop(z) + (z.Height / 2) - 20);
 
@@ -244,11 +276,13 @@ namespace Basic_Game_2
 
             }
 
+            // draw the laser
             _ = new Draw("laser", 40, 360, x, y, "fireball", "fire", BulletCanvas);
 
 
         }
 
+        
         public void FollowLaser(Canvas BulletCanvas, Canvas ItemSpace)
         {
             foreach (Rectangle z in BulletCanvas.Children.OfType<Rectangle>())
@@ -259,6 +293,7 @@ namespace Basic_Game_2
                     {
                         if ((string)x.Tag == "BossHands1")
                         {
+                            // follow boss hands
                             Canvas.SetTop(z, Canvas.GetTop(x) + (x.Height / 2) - (z.Height / 2));
                         }
                     }
@@ -289,22 +324,23 @@ namespace Basic_Game_2
             _ = new Draw(tag, 80, 50, x, y, "frog", "Boss", ItemSpace);
         }
 
+        // move the hands
         public void MoveHand(Canvas ItemSpace, Rectangle Player)
         {
             foreach (Rectangle x in ItemSpace.Children.OfType<Rectangle>())
             {
 
-
+                // if the hand can move
                 if ((string)x.Tag == tag && CanMove)
                 {
                     if (Canvas.GetTop(x) < Canvas.GetTop(Player)) // if the hand is above the player
                     {
-                        Canvas.SetTop(x, (Canvas.GetTop(x) + speed));
+                        Canvas.SetTop(x, (Canvas.GetTop(x) + speed)); // follow player
 
                     }
                     else if (Canvas.GetTop(x) > Canvas.GetTop(Player)) // if the hand is bellow the player
                     {
-                        Canvas.SetTop(x, (Canvas.GetTop(x) - speed));
+                        Canvas.SetTop(x, (Canvas.GetTop(x) - speed)); // follow player
                     }
                 }
 

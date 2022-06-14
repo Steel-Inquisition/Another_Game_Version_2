@@ -16,28 +16,10 @@ namespace Basic_Game_2
 
     public partial class MainWindow : Window
     {
+
+        // All Classes
         public void LoadClasses()
         {
-            // double getHealth, int getMp, int getHealthMax, int getMpMax, int getMpRegen, int getSize, WeaponMaker getWeapon, int getPhys, int getMagic, int getGun, int getPhysDef, int getMagDef, int getSpeed
-
-
-
-
-            /*
-            Rectangle Rect = new Rectangle();
-            Line line = new Line();
-
-
-            var ellipse1Geom = Rect.RenderedGeometry;
-            var ellipse2Geom = line.RenderedGeometry;
-            var detail = ellipse1Geom.FillContainsWithDetail(ellipse2Geom);
-            if (detail != IntersectionDetail.Empty)
-            {
-                // We have an intersection or one contained inside the other
-            }
-            http://jeffreythompson.org/collision-detection/line-rect.php
-            */
-
             // maybe I should use a search thing instead of order thing...
             classMakerList.Add(new ClassMaker("Knight", "Knight", "This being is one made of metalic fury. Very basic class. Starts with a sword.", 10, -10, 10, -10, 0, 0, weaponList[1], 10, -10, -10, 10, 0, 0, 0));
             classMakerList.Add(new ClassMaker("Squire", "Squire", "One built from weakness and scared yet ambitious. High Speed, No Defence. Starts with a weak knife.", -20, -20, -20, -20, 1, 0, weaponList[0], 5, 0, 15, 5, 5, 4, 5));
@@ -47,34 +29,40 @@ namespace Basic_Game_2
             classMakerList.Add(new ClassMaker("Gun Slinger", "Gunslinger", "The ones who stop the moving on. High gun, High phys, low magic, low magic defence. Starts with a .45 gun", -20, -20, -20, -20, 1, 0, weaponList[3], 5, 0, 15, 5, 5, 1, 0));
         }
 
+        // All Weapons
         public void LoadWeapons()
         {
             weaponList.Add(new WeaponMaker("Knife", "knife", 20, "phys", 20, 20, 10, "melee", 20, 0, 0, "N/A", bulletList[0], 0));
             weaponList.Add(new WeaponMaker("sword", "sword", 30, "phys", 20, 40, 20, "melee", 20, 0, 0, "N/A", bulletList[0], 0));
-            weaponList.Add(new WeaponMaker("spear", "spear", 15, "phys", 70, 20, 40, "melee", 0, 0, 0, "n/a", bulletList[0], 0));
-            weaponList.Add(new WeaponMaker("gun45", ".45", 10, "gun", 30, 20, 40, "ranged", 0, 1, 1, "n/a", bulletList[1], 0)); // First Gun (1)
+            weaponList.Add(new WeaponMaker("spear", "spear", 15, "phys", 70, 20, 40, "melee", 0, 0, 0, "N/A", bulletList[0], 0));
+            weaponList.Add(new WeaponMaker("gun45", ".45", 20, "gun", 10, 30, 10, "ranged", 20, 20, 0, "N/A", bulletList[1], 1)); // First Gun (1)
             weaponList.Add(new WeaponMaker("fireBook", "fire book", 80, "magic", 30, 20, 40, "melee", 0, 0, 60, "n/a", bulletList[0], 0));
             weaponList.Add(new WeaponMaker("crimsonDeath", "crimson death", 100, "magic", 30, 20, 40, "melee", 0, 0, 60, "n/a", bulletList[0], 0));
             weaponList.Add(new WeaponMaker("Ax", "ax", 80, "phys", 40, 40, 60, "melee", 0, 0, 0, "n/a", bulletList[0], 0));
-            weaponList.Add(new WeaponMaker("Black Hole", "blackhole", 150, "magic", 60, 60, 0, "melee", 0, 0, 150, "n/a", bulletList[0], 10));
-            weaponList.Add(new WeaponMaker("Ak-47", "ak", 30, "gun", 30, 20, 40, "ranged", 0, 2, 0, "n/a", bulletList[4], 30));
+            weaponList.Add(new WeaponMaker("Black Hole", "blackhole", 150, "magic", 60, 60, 0, "melee", 0, 0, 150, "n/a", bulletList[0], 0));
+            weaponList.Add(new WeaponMaker("Ak-47", "ak", 30, "gun", 30, 20, 40, "ranged", 0, 2, 0, "n/a", bulletList[4], 3));
         }
 
+
+        // All enemy weapons
         public void LoadEnemyWeapons()
         {
             enemyWeaponList.Add(new WeaponMaker("Swipe", "knife", 50, "phys", 20, 40, 20, "phys", 20, 0, 0, "n/a", bulletList[0], 0));
         }
 
+
+        // All bullets
         public void LoadBullets()
         {
             bulletList.Add(new BulletMaker("None", "Nothing", "striaght", 0, 0, 0, 0, 0, 0));
-            bulletList.Add(new BulletMaker("Normal", "A normal bullet", "striaght", 1, 10, 10, 1, 5, 20));
-            bulletList.Add(new BulletMaker("Bouncy", "Highly Unaccurate", "striaght", 1, 10, 10, 1, 0, 30));
+            bulletList.Add(new BulletMaker("Normal", "A normal bullet", "striaght", 1, 20, 10, 10, 2, 5));
+            bulletList.Add(new BulletMaker("Bouncy", "Highly Unaccurate", "striaght", 1, 20, 20, 1, 0, 30));
             bulletList.Add(new BulletMaker("Magical", "A normal bullet", "striaght", 1, 10, 10, 1, 10, 50));
             bulletList.Add(new BulletMaker("Pierce", "A normal bullet", "striaght", 5, 10, 10, 1, 10, 80));
 
         }
 
+        // All Boons
         public void LoadBoons()
         {
             boonList.Add(new BoonMaker("boon", "Flight", "Icarus flew too high in the sun and fell to his death. Will this happen to you?", 10, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0));
@@ -96,7 +84,7 @@ namespace Basic_Game_2
 
 
 
-        // Checking Collisions
+        // Checking Collisions for line / rectangle
         public bool LineRectangleCollision(double x1, double x2, double y1, double y2, double x, double y, double width, double height)
         {
 

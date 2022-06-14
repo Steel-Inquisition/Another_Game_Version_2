@@ -21,6 +21,11 @@ namespace Basic_Game_2
         public void SaveGame()
         {
 
+
+
+            // Main problem is that the player class does not save for some reason and that was VERY frusturating
+
+
             if (Keyboard.IsKeyDown(Key.S))
             {
                 // Save File
@@ -31,8 +36,10 @@ namespace Basic_Game_2
                 string playerString = JsonSerializer.Serialize(boonList[1], options);
                 string mapString = JsonSerializer.Serialize(Map, options);
 
+                // Save data
                 int[] data = { points, coin, Convert.ToInt16(ammo), holyCross, bomb, key, currentPlayer, timer, maxTimer, difficulty[0], difficulty[1], difficulty[2], difficulty[3], difficulty[4], Convert.ToInt32(Canvas.GetLeft(Player)), Convert.ToInt32(Canvas.GetTop(Player)) };
 
+                // Onto basic string
                 string basic_data = JsonSerializer.Serialize(data, options);
 
                 // The data as a JSON string may be easily saved to a file
@@ -60,6 +67,10 @@ namespace Basic_Game_2
 
             if (basic_data != null && tempMap != null)
             {
+
+
+                // Change data
+
                 Map = tempMap;
 
 
