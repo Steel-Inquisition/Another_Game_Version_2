@@ -32,10 +32,10 @@ namespace Basic_Game_2
         // All Weapons
         public void LoadWeapons()
         {
-            weaponList.Add(new WeaponMaker("Knife", "knife", 20, "phys", 20, 20, 10, "melee", 20, 0, 0, "N/A", bulletList[0], 0));
-            weaponList.Add(new WeaponMaker("sword", "sword", 30, "phys", 20, 40, 20, "melee", 20, 0, 0, "N/A", bulletList[0], 0));
-            weaponList.Add(new WeaponMaker("spear", "spear", 15, "phys", 70, 20, 40, "melee", 0, 0, 0, "N/A", bulletList[0], 0));
-            weaponList.Add(new WeaponMaker("gun45", ".45", 20, "gun", 10, 30, 10, "ranged", 20, 20, 0, "N/A", bulletList[1], 1)); // First Gun (1)
+            weaponList.Add(new WeaponMaker("dagger", "dagger", 20, "phys", 40, 20, 20, "melee", 30, 50, 0, "N/A", bulletList[0], 0));
+            weaponList.Add(new WeaponMaker("sword", "sword", 60, "phys", 20, 40, 20, "melee", 20, 0, 0, "N/A", bulletList[0], 0));
+            weaponList.Add(new WeaponMaker("spear", "spear", 45, "phys", 70, 20, 40, "melee", 0, 0, 0, "N/A", bulletList[0], 0));
+            weaponList.Add(new WeaponMaker("gun45", ".45", 30, "gun", 10, 30, 10, "ranged", 20, 20, 0, "N/A", bulletList[1], 1)); // First Gun (1)
             weaponList.Add(new WeaponMaker("fireBook", "fire book", 80, "magic", 30, 20, 40, "melee", 0, 0, 60, "n/a", bulletList[0], 0));
             weaponList.Add(new WeaponMaker("crimsonDeath", "crimson death", 100, "magic", 30, 20, 40, "melee", 0, 0, 60, "n/a", bulletList[0], 0));
             weaponList.Add(new WeaponMaker("Ax", "ax", 80, "phys", 40, 40, 60, "melee", 0, 0, 0, "n/a", bulletList[0], 0));

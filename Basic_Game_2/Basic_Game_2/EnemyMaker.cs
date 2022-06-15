@@ -16,7 +16,7 @@ namespace Basic_Game_2
         public void EnemyMovement(Rect PlayerHitBox)
         {
             bool DidEnemyFired = false;
-            int saveThisNumber = 0;
+            List<int> saveTheseNumbers = new();
 
             double saveX = 0;
             double saveY = 0;
@@ -58,7 +58,6 @@ namespace Basic_Game_2
 
 
                         }
-
                         // if the enemy is attarcted to the player
                         if (enemyStats[i].attracted)
                         {
@@ -88,8 +87,8 @@ namespace Basic_Game_2
                                 // enemy did fire
                                 DidEnemyFired = true;
 
-                                // save enemy id
-                                saveThisNumber = i;
+                                // save enemy id tp list
+                                saveTheseNumbers.Add(i);
 
                                 // shoot rate back to 0
                                 enemyStats[i].shootRate = 0;
@@ -103,13 +102,18 @@ namespace Basic_Game_2
             }
 
 
-            // if enemy fire
+            // if an enemy fire, go through the list of enemies who fired, and then those enemies will fire
             if (DidEnemyFired)
             {
+                // 
+                for (int i = 0; i < saveTheseNumbers.Count; i++)
+                {
+                    enemyStats[saveTheseNumbers[i]].EnemyFire(bulletFired, Player, enemyStats[saveTheseNumbers[i]].currentDirrection, BulletCanvas, saveX, saveY, bulletNum);
+                    bulletNum++;
+                }
 
-                // enemy shoot guns
-                enemyStats[saveThisNumber].EnemyFire(bulletFired, Player, enemyStats[saveThisNumber].currentDirrection, BulletCanvas, saveX, saveY, bulletNum);
-                bulletNum++;
+
+
             }
 
 
@@ -117,6 +121,30 @@ namespace Basic_Game_2
 
         }
 
+
+        // Delete weapon of enemy if they are dead
+        // This really doesn't need to be run every frame
+        public void DeleteWeaponIfDead()
+        {
+
+            for (int i = 0; i < enemyStats.Count; i++)
+            {
+
+                if (enemyStats[i].health <= 0)
+                {
+                    foreach (Rectangle x in ItemSpace.Children.OfType<Rectangle>())
+                    {
+                        if ((string)x.Tag == $"enemymelee-{i}" || (string)x.Tag == $"enemyranged-{i}")
+                        {
+                            itemstoremove.Add(x);
+                        }
+                    }
+
+                }
+
+            }
+
+        }
 
 
 
@@ -212,12 +240,6 @@ namespace Basic_Game_2
         // Self
         public Rectangle self;
 
-
-
-
-        // Diificulty
-        public int[] difficulty = {};
-
         public double knockback;
 
 
@@ -253,9 +275,11 @@ namespace Basic_Game_2
 
             PlayerOrEnemy = false;
 
-
             // Draw Enemy
             var enemy = new Draw($"enemy-{count}", Convert.ToInt16(wallSize), Convert.ToInt16(wallSize), (row * wallSize) + 55, (col * wallSize) + 80, imageName, name, OnThisCanvas);
+
+            this.thisCount = count;
+
 
             // Draw health bar for enemy
             var health_bar = new DrawHealthBar(count - 1, health, width, healthBarList, (row * wallSize) + 55, (col * wallSize) + 70, OnThisCanvas);
@@ -263,8 +287,10 @@ namespace Basic_Game_2
             // set self to player
             self = enemy.Rect;
 
+
+
             // set self to health bar
-            selfHealthBar = health_bar.Self;
+            healthBarList.Add(health_bar.Self);
         }
 
         // Bomb Damage
@@ -276,7 +302,7 @@ namespace Basic_Game_2
         }
 
         // Calculate Damage to Self
-        public int calculateDamage(PlayerMaker CurrentPlayer, Rectangle Enemy, string dirrection, TextBlock LogBox, Action UpdateUi, ScrollViewer ScrollBar, ProgressBar CurrentProgressBar, Canvas PlayerSpace, Canvas ItemSpace, int currentPlayer, Canvas PlayerUiBox, List<EnemyMaker> enemyStats, int enemyTarget)
+        public int calculateDamage(PlayerMaker CurrentPlayer, Rectangle Enemy, string dirrection, TextBlock LogBox, Action UpdateUi, ScrollViewer ScrollBar, ProgressBar CurrentProgressBar, Canvas PlayerSpace, Canvas ItemSpace, int currentPlayer, Canvas PlayerUiBox, List<EnemyMaker> enemyStats, int enemyTarget, int[] difficulty)
         {
 
             // Set Damage
@@ -289,12 +315,12 @@ namespace Basic_Game_2
             if (CurrentPlayer.weapon.damageType == "phys") // if phys
             {
                 damage += ((CurrentPlayer.phys));
-                damage -= physDef;
+                damage -= (physDef + difficulty[3]);
             }
             else if (CurrentPlayer.weapon.damageType == "magic") // if magic
             {
                 damage += (CurrentPlayer.magic);
-                damage -= magDef;
+                damage -= (magDef + difficulty[3]);
             }
             else if (CurrentPlayer.weapon.damageType == "gun") // if gun
             {
@@ -327,17 +353,20 @@ namespace Basic_Game_2
             // get current dirrection of enemy
             CurrentBullet.dirrection = currentDirrection;
 
-            // add bullet to the field
-            bulletFired.Add(CurrentBullet);
-
             // get tag of enemy
-            CurrentBullet.tag = $"enemybullet-{bulletFired.Count - 1}-{currentDirrection}";
+            CurrentBullet.tag = $"enemybullet-{bulletFired.Count}-{currentDirrection}";
+
+            // Bullet is fired by enemy
+            CurrentBullet.firedBy = "enemy";
 
             // draw enemy
-            var enemyBullet = new Draw($"enemybullet-{bulletFired.Count - 1}-{currentDirrection}", CurrentBullet.bulletWidth, CurrentBullet.bulletHeight, Convert.ToInt16(x), Convert.ToInt16(y), $"weapons/10", CurrentBullet.name, BulletCanvas);
+            var enemyBullet = new Draw($"enemybullet-{bulletFired.Count}-{currentDirrection}", CurrentBullet.bulletWidth, CurrentBullet.bulletHeight, Convert.ToInt16(x), Convert.ToInt16(y), $"weapons/10", CurrentBullet.name, BulletCanvas);
 
             // set current bullet to enemy bullet self
             CurrentBullet.self = enemyBullet.Rect;
+
+            // add bullet to the field
+            bulletFired.Add(CurrentBullet);
 
         }
 
@@ -352,6 +381,8 @@ namespace Basic_Game_2
                 progressstoremove.Add(y);
             }
         }
+
+
     }
 
 

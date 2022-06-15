@@ -162,7 +162,6 @@ namespace Basic_Game_2
 
                         enemyStats.Add(new EnemyMaker("zombie", "zombie", $"enemy-{enemyStats.Count - 1}", "zombie", "ZOMBIE", 100, 10, 100, 10, 1, 25, enemyWeaponList[0], 10, 10, 10, 10, 10, 2, 0, 20, 20, visionCone, false, row, col, enemyStats.Count, healthBarList, wallSize, new(10, 0, 0, 0, 0, 0, 20, 0, 0), bulletList[0], ItemSpace));
 
-
                     }
                     else if (room[generateRoom] == "SHOOTER")
                     {
@@ -222,7 +221,7 @@ namespace Basic_Game_2
 
                         double[] visionCone = { 300, 300 };
 
-                        enemyStats.Add(new EnemyMaker("soldier", "soldier", $"enemy-{enemyStats.Count - 1}", "soldier", "ZOMBIE", 200, 0, 20, 0, 20, 25, enemyWeaponList[0], 20, 20, 20, 20, 20, 3, 0, 40, 20, visionCone, true, row, col, enemyStats.Count, healthBarList, wallSize, new(10, 0, 0, 0, 0, 0, 0, 0, 0), bulletList[0], ItemSpace));
+                        enemyStats.Add(new EnemyMaker("soldier", "soldier", $"enemy-{enemyStats.Count - 1}", "soldier", "ZOMBIE", 200, 0, 20, 0, 20, 25, enemyWeaponList[0], 20, 20, 20, 20, 20, 3, 30, 40, 20, visionCone, true, row, col, enemyStats.Count, healthBarList, wallSize, new(10, 0, 0, 0, 0, 0, 0, 0, 0), bulletList[1], ItemSpace));
 
 
 
@@ -436,6 +435,21 @@ namespace Basic_Game_2
             }
 
         }
+
+        // Transport to next room
+        public void transportNextRoom()
+        {
+
+            BulletCanvas.Children.Clear();
+            ItemSpace.Children.Clear();
+
+            foreach (ProgressBar x in ItemSpace.Children.OfType<ProgressBar>())
+            {
+                progressstoremove.Add(x);
+            }
+
+        }
+
 
         // Move the player across the minimap
         public void RemovePlayerSymbol()
@@ -686,14 +700,14 @@ namespace Basic_Game_2
             this.mapLength = mapLength;
             this.mapType = mapType;
 
-            if (mapType == 1)
+            if (mapType == 0)
             {
                 this.currentRoom = 24;
                 
                 totalMapText = System.IO.File.ReadAllText(@"data-files/map/tutorial.txt");
                 totalRoomText = System.IO.File.ReadAllText(@"data-files/map/tutorialSettings.txt");
             }
-            else if (mapType == 0)
+            else if (mapType == 1)
             {
                 this.currentRoom = 44;
                 totalMapText = System.IO.File.ReadAllText(@"data-files/map/map1.txt");

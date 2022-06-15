@@ -36,6 +36,8 @@ namespace Basic_Game_2
 
         public WeaponMaker weapon;
 
+        public Rectangle weaponRectangle = new();
+
         public bool[] ifTouchWall = { false, false, false, false };
 
 
@@ -155,51 +157,15 @@ namespace Basic_Game_2
                 CheckIfWallCollide(Self, ItemSpace);
 
             }
-            else // Enemy Movemenet
+            else // Enemy Movement
             {
-                if (Canvas.GetLeft(Self) < Canvas.GetLeft(Other))
-                {
-                    speedX += speed;
-
-                    currentDirrection = "right";
-                }
-                else if (Canvas.GetLeft(Self) > (Canvas.GetLeft(Other)))
-                {
-                    speedX -= speed;
-
-                    currentDirrection = "left";
-                }
-
                 CheckIfWallCollide(Self, PlayerSpace);
                 CheckIfWallCollide(Self, ItemSpace);
-
-                if (Canvas.GetTop(Self) < Canvas.GetTop(Other))
-                {
-                    speedY += speed;
-
-                    currentDirrection = "down";
-                }
-                else if (Canvas.GetTop(Self) > Canvas.GetTop(Other))
-                {
-                    speedX -= speed;
-
-                    currentDirrection = "up";
-
-                }
-
-                CheckIfWallCollide(Self, PlayerSpace);
-                CheckIfWallCollide(Self, ItemSpace);
-
 
                 // Move enemy on canvas
-                Enemy_movement(Self, Other, speedX, speedY, type);
+                Enemy_movement(Self, Other, type);
 
             }
-
-            double moveLeft = speedX;
-            double moveUp = speedY;
-
-
 
             // if the type is a player, then move this way
             if (type == "PLAYER") // Move player on canvas
@@ -207,20 +173,20 @@ namespace Basic_Game_2
 
                 if (ifTouchWall[0] == false && currentDirrection == "up")
                 {
-                    Canvas.SetTop(Self, Canvas.GetTop(Self) + moveUp);
+                    Canvas.SetTop(Self, Canvas.GetTop(Self) + speedY);
 
                 }
                 else if (ifTouchWall[1] == false && currentDirrection == "down")
                 {
-                    Canvas.SetTop(Self, Canvas.GetTop(Self) + moveUp);
+                    Canvas.SetTop(Self, Canvas.GetTop(Self) + speedY);
                 }
                 else if (ifTouchWall[2] == false && currentDirrection == "left")
                 {
-                    Canvas.SetLeft(Self, Canvas.GetLeft(Self) + moveLeft);
+                    Canvas.SetLeft(Self, Canvas.GetLeft(Self) + speedX);
                 }
                 else if (ifTouchWall[3] == false && currentDirrection == "right")
                 {
-                    Canvas.SetLeft(Self, Canvas.GetLeft(Self) + moveLeft);
+                    Canvas.SetLeft(Self, Canvas.GetLeft(Self) + speedX);
                 }
             }
 
@@ -231,7 +197,7 @@ namespace Basic_Game_2
             speedY = 0;
         }
 
-        public void Enemy_movement(Rectangle Self, Rectangle Other, double moveLeft, double moveUp, string type)
+        public void Enemy_movement(Rectangle Self, Rectangle Other, string type)
         {
 
             // change how the enemy moves based on type
@@ -239,30 +205,32 @@ namespace Basic_Game_2
             if (type == "ENEMY_ZOMBIE")
             {
 
-                if (Canvas.GetLeft(Self) < Canvas.GetLeft(Other) && ifTouchWall[3] == false) // if the enemy is to the left of the player 
+
+                if ((Canvas.GetLeft(Self) < Canvas.GetLeft(Other)) && ifTouchWall[3] == false) // if the enemy is to the left of the player 
                 {
-                    Canvas.SetLeft(Self, (Canvas.GetLeft(Self) + moveLeft));
+                    Canvas.SetLeft(Self, (Canvas.GetLeft(Self) + speed));
 
                     currentDirrection = "right";
 
                 }
-                else if (Canvas.GetLeft(Self) > (Canvas.GetLeft(Other)) && ifTouchWall[2] == false) // if the enemy is to the right of the player 
+                else if ((Canvas.GetLeft(Self) > Canvas.GetLeft(Other)) && ifTouchWall[2] == false) // if the enemy is to the right of the player 
                 {
-                    Canvas.SetLeft(Self, (Canvas.GetLeft(Self) + moveLeft));
+                    Canvas.SetLeft(Self, (Canvas.GetLeft(Self) - speed));
 
                     currentDirrection = "left";
 
                 }
-                if (Canvas.GetTop(Self) < Canvas.GetTop(Other) && ifTouchWall[0] == false) // if the enemy is above the player
+
+                if ((Canvas.GetTop(Self) < Canvas.GetTop(Other)) && ifTouchWall[0] == false) // if the enemy is above the player
                 {
-                    Canvas.SetTop(Self, (Canvas.GetTop(Self) + moveUp));
+                    Canvas.SetTop(Self, (Canvas.GetTop(Self) + speed));
 
                     currentDirrection = "down";
 
                 }
-                else if (Canvas.GetTop(Self) > Canvas.GetTop(Other) && ifTouchWall[1] == false) // if the enemy is bellow the player
+                else if ((Canvas.GetTop(Self) > Canvas.GetTop(Other)) && ifTouchWall[1] == false) // if the enemy is bellow the player
                 {
-                    Canvas.SetTop(Self, (Canvas.GetTop(Self) + moveUp));
+                    Canvas.SetTop(Self, (Canvas.GetTop(Self) - speed));
 
                     currentDirrection = "up";
 
@@ -272,30 +240,30 @@ namespace Basic_Game_2
             else if (type == "ENEMY_SHOOTER")
             {
 
-                if (Canvas.GetLeft(Self) < Canvas.GetLeft(Other) && ifTouchWall[3] == false) // if the enemy is to the left of the player 
+                if ((Canvas.GetLeft(Self) < Canvas.GetLeft(Other)) && ifTouchWall[3] == false) // if the enemy is to the left of the player 
                 {
-                    Canvas.SetLeft(Self, (Canvas.GetLeft(Self) + moveLeft));
+                    Canvas.SetLeft(Self, (Canvas.GetLeft(Self) + speed));
 
                     currentDirrection = "right";
 
                 }
-                else if (Canvas.GetLeft(Self) > (Canvas.GetLeft(Other) + Other.Width) && ifTouchWall[2] == false) // if the enemy is to the right of the player 
+                else if ((Canvas.GetLeft(Self) > Canvas.GetLeft(Other)) && ifTouchWall[2] == false) // if the enemy is to the right of the player 
                 {
-                    Canvas.SetLeft(Self, (Canvas.GetLeft(Self) + moveLeft));
+                    Canvas.SetLeft(Self, (Canvas.GetLeft(Self) - speed));
 
                     currentDirrection = "left";
 
                 }
-                else if (Canvas.GetTop(Self) < Canvas.GetTop(Other) && ifTouchWall[0] == false) // if the enemy is above the player
+                else if ((Canvas.GetTop(Self) < Canvas.GetTop(Other)) && ifTouchWall[0] == false) // if the enemy is above the player
                 {
-                    Canvas.SetTop(Self, (Canvas.GetTop(Self) + moveUp));
+                    Canvas.SetTop(Self, (Canvas.GetTop(Self) + speed));
 
                     currentDirrection = "down";
 
                 }
-                else if (Canvas.GetTop(Self) > Canvas.GetTop(Other) && ifTouchWall[1] == false) // if the enemy is bellow the player
+                else if ((Canvas.GetTop(Self) > Canvas.GetTop(Other)) && ifTouchWall[1] == false) // if the enemy is bellow the player
                 {
-                    Canvas.SetTop(Self, (Canvas.GetTop(Self) + moveUp));
+                    Canvas.SetTop(Self, (Canvas.GetTop(Self) - speed));
 
                     currentDirrection = "up";
                 }

@@ -23,26 +23,26 @@ namespace Basic_Game_2
                 difficulty[0]++;
 
                 // Change the difficulty
-                ChangeDifficultyValues(difficulty[0], maxTimer);
+                ChangeDifficultyValues();
 
             }
         }
 
         // Only used once when the timer runs out
-        public void ChangeDifficultyValues(int change, int maximum)
+        public void ChangeDifficultyValues()
         {
-            // Enemy Health
-            difficulty[1] = change * 100;
+            // Cost of chests
+            difficulty[1] = difficulty[0] * 10;
             // Enemy Damage
-            difficulty[2] = change * 10;
-            // Enemy Speed
-            difficulty[3] = change / 2;
+            difficulty[2] = difficulty[0] * 10;
+            // Enemy Defense
+            difficulty[3] = difficulty[0] / 2;
 
             // Weapon Damage
-            difficulty[4] = change * 20;
+            difficulty[4] = difficulty[0] * 20;
 
             // Show the difficulty text
-            DifficultyBlock.Text = "Difficulty: " + change;
+            DifficultyBlock.Text = "Difficulty: " + difficulty[0];
 
             // If the difficulty is 1,2,3, change max timer and background of the timer
             if (difficulty[0] == 1)
@@ -66,7 +66,7 @@ namespace Basic_Game_2
             }
 
             // Change max timer
-            TimerBar.Maximum = maximum;
+            TimerBar.Maximum = maxTimer;
 
             // Timer is now 0
             timer = 0;

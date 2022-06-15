@@ -13,7 +13,246 @@ namespace Basic_Game_2
 
     // Main Probklem:
     // Exiting to a new room could be a bit more efficent. Since it is repettive and can probally just be a single function
+    public partial class MainWindow : Window
+    {
 
+
+
+        // Move Enemy
+        public void EnemyMoverAndAttacker(Rect PlayerHitbox)
+        {
+            if (enemyStats.Count > 0)
+            {
+
+                // Move Enemy
+                EnemyMovement(PlayerHitbox);
+
+                // Attack Enemy / Player
+                PlayerAttackEnemy(PlayerHitbox);
+
+
+                // Enemy Create Weapon or Not
+                for (int i = 0; i < enemyStats.Count; i++)
+                {
+
+                    // Enemy reaction time to attack
+                    // If the enemy can attack and weapon is not created and is not ranged
+                    if (enemyStats[i].AllowWeapon == true && enemyStats[i].WeaponCreated == false && !enemyStats[i].ranged)
+                    {
+                        // Reaction Time for Enemy
+                        enemyStats[i].reaction++;
+
+                        // If the reaction time is complete
+                        if (enemyStats[i].reaction > enemyStats[i].reactionTime)
+                        {
+
+                            // Complete Enemy Weapon
+                            enemyStats[i].WeaponCreated = true;
+                            enemyStats[i].weaponRectangle = weapon.CreateWeapon(enemyStats[i].currentDirrection, ItemSpace, $"enemymelee-{enemyStats[i].thisCount}", enemyStats[i].weapon);
+
+                            // Set reaction back to 0
+                            enemyStats[i].reaction = 0;
+
+                        }
+
+                    }
+
+                    foreach (Rectangle x in ItemSpace.Children.OfType<Rectangle>())
+                    {
+
+                        // if the weapon is from an enemy
+                        if ((string)x.Tag == $"enemymelee-{i}" || (string)x.Tag == $"enemyranged-{i}")
+                        {
+
+                            // Follow Enemy
+                            weapon.FollowPlayer(x, enemyStats[i].self, enemyStats[i].WeaponCreated, enemyStats[i].currentDirrection);
+
+                            // If the fire rate is complete then delete it
+                            if (enemyStats[i].firerate > enemyStats[i].innerFrame)
+                            {
+                                enemyStats[i].innerFrame = 0;
+                                enemyStats[i].AllowWeapon = false;
+                                itemstoremove.Add(x);
+                                enemyStats[i].WeaponCreated = false;
+                            }
+                            else
+                            {
+                                enemyStats[i].innerFrame++;
+                            }
+
+
+
+
+                        }
+                    }
+
+
+
+
+
+
+
+
+                }
+            }
+
+        }
+
+
+        // Attack Eachother
+        public void PlayerAttackEnemy(Rect PlayerHitbox)
+        {
+
+
+            foreach (Rectangle x in ItemSpace.Children.OfType<Rectangle>())
+            {
+                for (int i = 0; i < enemyStats.Count; i++)
+                {
+                    if ((string)x.Tag == $"enemy-{i}")
+                    {
+                        var Enemy = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
+
+                        // Check if player takes damage
+                        PlayerTakeDamage(Enemy, PlayerHitbox, i, x);
+
+
+                        // Check if the enemy weapon hits player
+                        foreach (Rectangle y in ItemSpace.Children.OfType<Rectangle>())
+                        {
+                            if ((string)y.Tag == $"enemymelee-{i}" || (string)y.Tag == $"enemyranged-{i}")
+                            {
+                                var Weapon = new Rect(Canvas.GetLeft(y), Canvas.GetTop(y), y.Width, y.Height);
+
+
+                                PlayerTakeDamage(Weapon, PlayerHitbox, i, x);
+
+
+                            }
+
+
+                            // Check the player weapon
+                            if ((string)y.Tag == "melee" || (string)y.Tag == "ranged")
+                            {
+                                var Weapon = new Rect(Canvas.GetLeft(y), Canvas.GetTop(y), y.Width, y.Height);
+
+                                // if the weapon hits the enemy
+                                if (Weapon.IntersectsWith(Enemy))
+                                {
+
+                                    // Calculate damage delt to enemy
+                                    currentPlayer = enemyStats[i].calculateDamage(playerList[currentPlayer], x, oldDirrection, LogBox, UpdateUi, ScrollBar, healthBarList[i], PlayerSpace, ItemSpace, currentPlayer, PlayerUiBox, enemyStats, i, difficulty);
+
+                                    // Check if enemy is dead
+                                    enemyStats[i].checkIfDead(itemstoremove, progressstoremove, x, healthBarList[i], ItemSpace, i);
+                                }
+
+                            }
+
+                        }
+                    }
+                }
+
+            }
+        }
+
+
+        // If the enemy touches the player and invisibility frames are over
+        public void PlayerTakeDamage(Rect ThisAttack, Rect PlayerHitbox, int enemyTarget, Rectangle MoveRectangle)
+        {
+
+            if (invisibilityFrame > playerList[currentPlayer].invisibiltyFrames)
+            {
+                invisibilityFrame = 0;
+                PlayerIsHit = false;
+            }
+            if (ThisAttack.IntersectsWith(PlayerHitbox) && PlayerIsHit == false)
+            {
+                PlayerIsHit = true;
+                currentPlayer = playerList[currentPlayer].damaged(enemyStats[enemyTarget], LogBox, UpdateUi, ScrollBar, PlayerUiBox, healthBarList[0], currentPlayer, difficulty);
+                playerList[currentPlayer].KnockBack(PlayerSpace, ItemSpace, Player, enemyStats[enemyTarget].currentDirrection, enemyStats[enemyTarget].knockback);
+                currentPlayer = playerList[currentPlayer].CheckIfDead(currentPlayer, PlayerUiBox, enemyStats[enemyTarget].name, LogBox, ScrollBar, UpdateUi);
+
+
+            }
+        }
+
+        // Check if all players are dead
+        public void CheckIfAlldead()
+        {
+
+            if (playerList[0].health <= 0 && playerList[1].health <= 0 && playerList[2].health <= 0 && playerList[3].health <= 0)
+            {
+                MessageBox.Show("GAME OVER!");
+                MessageBox.Show($"{playerList[0].health} {playerList[1].health} {playerList[2].health} {playerList[3].health}");
+                dispatcherTimer.Stop();
+
+                EndGame();
+            }
+        }
+
+
+
+        // gain mp based on mp gained
+        public void MpGain()
+        {
+            for (int i = 0; i < playerList.Count; i++)
+            {
+                if (playerList[i].mp < playerList[i].mpMax)
+                {
+                    playerList[i].mp += playerList[i].mpRegen;
+
+                    UpdateUi();
+                }
+            }
+
+        }
+
+        // Exit to a new map
+        public void ExitTheMap()
+        {
+            // Clear All Canvases
+            ItemSpace.Children.Clear();
+            BulletCanvas.Children.Clear();
+            MiniMapCanvas.Children.Clear();
+
+            listStats.Clear();
+            hiddenStats.Clear();
+
+
+
+            if (Map.totalMap[Map.currentRoom].roomType == "[exit1]")
+            {
+                // Create New Map
+                Map = new(100, 1);
+            }
+
+
+
+            // Fill Said Map
+            FillMap();
+
+            // Set Up Map
+            CreateMiniMap();
+
+            // Set up clear fog of war on map
+            FindRoomOnMap();
+
+
+
+            // Activate Special Room features
+            Map.totalMap[Map.currentRoom].ActivateRoom(LogBox, ScrollBar, Player, MakeArmPusherBoss);
+        }
+
+        // if the health is above the max health, set health to max health
+        public void SetHealthToMax(int select)
+        {
+            if (playerList[select].health > playerList[select].healthMax)
+            {
+                playerList[select].health = playerList[select].healthMax;
+            }
+        }
+
+    }
 
 
     // Player Maker Class
@@ -145,11 +384,11 @@ namespace Basic_Game_2
         
 
         // Deal Damage to Player
-        public int damaged(EnemyMaker Enemy, TextBlock LogBox, Action UpdateUi, ScrollViewer ScrollBar, Canvas PlayerUiBox, ProgressBar CurrentProgressBar, int currentPlayer)
+        public int damaged(EnemyMaker Enemy, TextBlock LogBox, Action UpdateUi, ScrollViewer ScrollBar, Canvas PlayerUiBox, ProgressBar CurrentProgressBar, int currentPlayer, int[] difficulty)
         {
 
             // Set Initial Damage
-            double damage = 0;
+            double damage = difficulty[2];
 
             // Based on damage type add that type of damage
             if (Enemy.weapon.damageType == "phys")

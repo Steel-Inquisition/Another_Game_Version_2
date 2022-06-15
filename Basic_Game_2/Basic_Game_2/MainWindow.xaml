@@ -60,8 +60,7 @@
         <Rectangle Width="600" Height="729" Canvas.Top="60" Canvas.Left="200" Stroke="black" Tag="title"/>
 
         <!-- Menu Buttons -->
-        <Button Content="Start Game" Width="150" Canvas.Top="60" Canvas.Left="20" Tag="title" />
-        <Button Content="The Tutorial" Click="StartingGame" Width="150" Canvas.Top="100" Canvas.Left="20" Tag="title"/>
+            <Button Content="Start Game" Click="StartingGame" Width="150" Canvas.Top="60" Canvas.Left="20" Tag="title" />
         <Button Content="Load Game" Click="Load_User_Data" Width="150" Canvas.Top="140" Canvas.Left="20" Tag="title" />
 
         <!-- Game Description -->

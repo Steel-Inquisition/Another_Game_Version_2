@@ -90,7 +90,7 @@ namespace Basic_Game_2
 
             // Check Damage
 
-            HeadMakerList[0].CheckForDamage(ItemSpace, playerList[currentPlayer].weapon, UpdateBossHealthBar, enemyStats, bulletList, difficulty, healthBarList, enemyWeaponList, PlayerHitbox, playerList, currentPlayer, PlayerIsHit);
+            HeadMakerList[0].CheckForDamage(ItemSpace, playerList[currentPlayer].weapon, UpdateBossHealthBar, enemyStats, bulletList, difficulty, healthBarList, enemyWeaponList, PlayerHitbox, playerList, currentPlayer, PlayerIsHit, PlayerUiBox, LogBox, ScrollBar, UpdateUi, new(), BulletCanvas, EndGame);
         }
 
 
@@ -166,7 +166,7 @@ namespace Basic_Game_2
 
 
         // Check for damage
-        public void CheckForDamage(Canvas ItemSpace, WeaponMaker PlayerWeapon, Action UpdateBossHealthBar, List<EnemyMaker> enemyStats, List<BulletMaker> bulletList, int[] difficulty, List<ProgressBar> healthBarList, List<WeaponMaker> enemyWeaponList, Rect PlayerHitbox, List<PlayerMaker> playerList, int currentPlayer, bool PlayerIsHit)
+        public void CheckForDamage(Canvas ItemSpace, WeaponMaker PlayerWeapon, Action UpdateBossHealthBar, List<EnemyMaker> enemyStats, List<BulletMaker> bulletList, int[] difficulty, List<ProgressBar> healthBarList, List<WeaponMaker> enemyWeaponList, Rect PlayerHitbox, List<PlayerMaker> playerList, int currentPlayer, bool PlayerIsHit, Canvas PlayerUiBox, TextBlock LogBox, ScrollViewer ScrollBar, Action UpdateUi, ProgressBar CurrentProgressBar, Canvas BulletSpace, Action EndGame)
         {
 
             // if enemy is spawned
@@ -213,7 +213,7 @@ namespace Basic_Game_2
                                 Canvas.SetLeft(x, teleportX);
 
                                 // check if the boss is dead
-                                CheckIfDead();
+                                CheckIfDead(EndGame);
 
                                 // spawns a new enemy
                                 spawnEnemy = true;
@@ -227,6 +227,25 @@ namespace Basic_Game_2
             }
 
 
+            // if laser touches player
+
+            foreach (Rectangle x in BulletSpace.Children.OfType<Rectangle>())
+            {
+                if ((string)x.Tag == "laser")
+                {
+                    var laser = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
+
+                    if (laser.IntersectsWith(PlayerHitbox))
+                    {
+                        double damage = 1;
+
+                        currentPlayer = playerList[currentPlayer].TakeDamage(damage, "laser", currentPlayer, LogBox, UpdateUi, PlayerUiBox, ScrollBar, CurrentProgressBar);
+                        currentPlayer = playerList[currentPlayer].CheckIfDead(currentPlayer, PlayerUiBox, "laser", LogBox, ScrollBar, UpdateUi);
+                    }
+                }
+            }
+
+
             // if an enemy is spawned
             if (spawnEnemy)
             {
@@ -234,14 +253,14 @@ namespace Basic_Game_2
                 double[] visionCone = { 1000, 1000 };
 
                 // add this enemy
-                enemyStats.Add(new EnemyMaker("slime", "slime", $"enemy-{enemyStats.Count - 1}", "slime", "zombie", 75, 0, 75, 0, 0, 25, enemyWeaponList[0], 30, 0, 0, 50, 0, 4, 0, 40, 30, visionCone, false, 10, 10, enemyStats.Count, healthBarList, 25, new(10, 0, 0, 0, 0, 0, 0, 0, 0), bulletList[0], ItemSpace));
+                enemyStats.Add(new EnemyMaker("slime", "slime", $"enemy-{enemyStats.Count - 1}", "slime", "ZOMBIE", 75, 0, 75, 0, 0, 25, enemyWeaponList[0], 30, 0, 0, 50, 0, 4, 0, 40, 30, visionCone, false, 10, 10, enemyStats.Count, healthBarList, 25, new(10, 0, 0, 0, 0, 0, 0, 0, 0), bulletList[0], ItemSpace));
             }
 
         }
 
 
         // if dead
-        public void CheckIfDead()
+        public void CheckIfDead(Action EndGame)
         {
             if (health <= 0)
             {
@@ -249,7 +268,7 @@ namespace Basic_Game_2
                 MessageBox.Show("You Won The Game!!!");
 
 
-                //EndGame();
+                EndGame();
             }
         }
 
@@ -278,8 +297,6 @@ namespace Basic_Game_2
 
             // draw the laser
             _ = new Draw("laser", 40, 360, x, y, "fireball", "fire", BulletCanvas);
-
-
         }
 
         

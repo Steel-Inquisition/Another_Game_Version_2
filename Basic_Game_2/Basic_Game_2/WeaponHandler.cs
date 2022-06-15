@@ -5,7 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-
+using System.Linq;
 
 namespace Basic_Game_2
 {
@@ -54,7 +54,9 @@ namespace Basic_Game_2
             if (weaponCreated)
             {
                 frame++;
-                weaponCreated = weapon.AddRemoveSword(weaponCreated, frame, Player, itemstoremove, oldDirrection);
+
+
+                weaponCreated = weapon.AddRemoveSword(weaponCreated, frame, CurrentPlayer.weaponRectangle, Player, itemstoremove, oldDirrection);
 
             }
             else
@@ -73,7 +75,8 @@ namespace Basic_Game_2
             {
 
                 // Create a weapon and then return "true" that a weapon is created
-                weaponCreated = weapon.CreateWeapon(CurrentPlayer.currentDirrection, ItemSpace, CurrentWeapon.type, CurrentWeapon);
+                weaponCreated = true;
+                CurrentPlayer.weaponRectangle = weapon.CreateWeapon(oldDirrection, ItemSpace, CurrentWeapon.type, CurrentWeapon);
 
             } // or the weapon is magical
             else if (CurrentWeapon.damageType == "magic")
@@ -98,8 +101,8 @@ namespace Basic_Game_2
                 // Subtract the current player mp bythe current weapon mp usage
                 CurrentPlayer.mp -= CurrentWeapon.mpUsage;
 
-                // 
-                weaponCreated = weapon.CreateWeapon(CurrentPlayer.currentDirrection, ItemSpace, CurrentWeapon.type, CurrentWeapon);
+                weaponCreated = true;
+                CurrentPlayer.weaponRectangle = weapon.CreateWeapon(CurrentPlayer.currentDirrection, ItemSpace, CurrentWeapon.type, CurrentWeapon);
 
             }
         }
@@ -122,12 +125,14 @@ namespace Basic_Game_2
 
                     // Change UI to show this change
                     UpdateItemCount();
+
                 }
 
             }
         }
 
-        // Move each bullet in the array
+        // Move each bullet in the Bullet Fired Canvas
+        // this is almost the same as having a unique array since Bullets are the only thing in it
         public void MoveBullet()
         {
             Random rand = new Random();
@@ -174,35 +179,77 @@ namespace Basic_Game_2
             // Chnage the tag to the current bullet
             CurrentBullet.tag = $"bullet-{bulletFired.Count}-{oldDirrection}";
 
+            CurrentBullet.firedBy = "player";
+
             // Get the (x,y) position
             double x = Canvas.GetLeft(Player);
             double y = Canvas.GetTop(Player);
 
-            if (currentDirrection == "up" || currentDirrection == "down") // If current Dirrection up or down
-            {
+            // Create the bullet onto the canvas
+            var newRect = new Draw($"bullet-{bulletFired.Count}-{oldDirrection}", CurrentBullet.bulletWidth, CurrentBullet.bulletHeight, Convert.ToInt16(x), Convert.ToInt16(y), $"weapons/10", CurrentBullet.name, BulletCanvas);
 
-                // Create the bullet onto the canvas
-                var newRect = new Draw($"bullet-{bulletFired.Count}-{oldDirrection}", CurrentBullet.bulletWidth, CurrentBullet.bulletHeight, Convert.ToInt16(x), Convert.ToInt16(y), $"weapons/10", CurrentBullet.name, BulletCanvas);
-
-                // Add the current self onto the bullet
-                CurrentBullet.self = newRect.Rect;
-
-
-            }
-            else if (currentDirrection == "left" || currentDirrection == "right")
-            {
-
-                // Create the bullet onto the canvas
-                var newRect = new Draw($"bullet-{bulletFired.Count}-{oldDirrection}", CurrentBullet.bulletHeight, CurrentBullet.bulletWidth, Convert.ToInt16(x), Convert.ToInt16(y), $"weapons/10", CurrentBullet.name, BulletCanvas);
-
-                // Add the current self onto the bullet
-                CurrentBullet.self = newRect.Rect;
-
-            }
+            // Add the current self onto the bullet
+            CurrentBullet.self = newRect.Rect;
 
             // Add it to the List so it can be accessed
             bulletFired.Add(CurrentBullet);
 
+
+        }
+
+        public void AmmoInteract(Rect PlayerHitbox)
+        {
+
+
+
+            // Check for enemy and check if bullet deals damage to them
+            foreach (Rectangle x in ItemSpace.Children.OfType<Rectangle>())
+            {
+                for (int i = 0; i < enemyStats.Count; i++)
+                {
+                    if ((string)x.Tag == $"enemy-{i}")
+                    {
+                        var Enemy = new Rect(Canvas.GetLeft(x), Canvas.GetTop(x), x.Width, x.Height);
+
+                        foreach (BulletMaker y in bulletFired)
+                        {
+                            foreach (Rectangle w in BulletCanvas.Children.OfType<Rectangle>())
+                            {
+                                if ((y.tag == (string)w.Tag))
+                                {
+                                    var Bullet = new Rect(Canvas.GetLeft(w), Canvas.GetTop(w), w.Width, w.Height);
+
+
+                                    // if hit player
+                                    if ((Bullet.IntersectsWith(PlayerHitbox) && y.firedBy == "enemy"))
+                                    {
+                                        itemstoremove.Add(w);
+                                        PlayerTakeDamage(Bullet, PlayerHitbox, i, x);
+                                    }
+
+
+                                    // if hit enemy
+                                    if (Bullet.IntersectsWith(Enemy) && y.firedBy == "player")
+                                    {
+
+                                        itemstoremove.Add(w);
+
+                                        // Calculate damage delt to enemy
+                                        currentPlayer = enemyStats[i].calculateDamage(playerList[currentPlayer], x, oldDirrection, LogBox, UpdateUi, ScrollBar, healthBarList[i], PlayerSpace, ItemSpace, currentPlayer, PlayerUiBox, enemyStats, i, difficulty);
+
+                                        // Check if enemy is dead
+                                        enemyStats[i].checkIfDead(itemstoremove, progressstoremove, x, healthBarList[i], ItemSpace, i);
+                                    }
+                                }
+                            }
+
+
+                        }
+                    }
+
+                }
+
+            }
 
         }
 
@@ -217,6 +264,7 @@ namespace Basic_Game_2
         public string bulletType;
 
         public string tag = "";
+        public string firedBy = "";
         public string dirrection = "";
 
         public double bulletDamage;
@@ -317,11 +365,8 @@ namespace Basic_Game_2
         public double weaponWidth;
         public double weaponTimer;
 
-        public Rectangle self = new();
-
-
         // Create weapon based on dirrection
-        public bool CreateWeapon(string currentDirrection, Canvas PlayerSpace, string tagName, WeaponMaker CurrentWeapon)
+        public Rectangle CreateWeapon(string currentDirrection, Canvas ThisCanvas, string tagName, WeaponMaker CurrentWeapon)
         {
             if (currentDirrection == "up" || currentDirrection == "down") // If current Dirrection up or down
             {
@@ -329,12 +374,11 @@ namespace Basic_Game_2
                 weaponHeight = CurrentWeapon.width;
 
                 weaponTimer = CurrentWeapon.timeLength;
-                
-                // Create the weapon
-                var newRect = new Draw(tagName, Convert.ToInt16(weaponWidth), Convert.ToInt16(weaponHeight), 0, 0, $"weapons/{CurrentWeapon.imageName}-1", CurrentWeapon.name, PlayerSpace);
 
-                // Set the self to the self
-                self = newRect.Rect;
+                // Create the weapon
+                var weaponRect = new Draw(tagName, Convert.ToInt16(weaponWidth), Convert.ToInt16(weaponHeight), 0, 0, $"weapons/{CurrentWeapon.imageName}-1", CurrentWeapon.name, ThisCanvas);
+
+                return weaponRect.Rect;
 
             }
             else if (currentDirrection == "left" || currentDirrection == "right")
@@ -345,32 +389,24 @@ namespace Basic_Game_2
                 weaponTimer = CurrentWeapon.timeLength;
 
                 // Create the weapon
-                var newRect = new Draw(tagName, Convert.ToInt16(weaponWidth), Convert.ToInt16(weaponHeight), 0, 0, $"weapons/{CurrentWeapon.imageName}-1.5", CurrentWeapon.name, PlayerSpace);
+                var weaponRect = new Draw(tagName, Convert.ToInt16(weaponWidth), Convert.ToInt16(weaponHeight), 0, 0, $"weapons/{CurrentWeapon.imageName}-1.5", CurrentWeapon.name, ThisCanvas);
 
-                // Set the self to the self
-                self = newRect.Rect;
+                return weaponRect.Rect;
             }
 
-            return true;
+            return new();
 
         }
 
         // Adding or Removing the sword based on timer
-        public bool AddRemoveSword(bool weaponCreated, int frame, Rectangle Player, List<Rectangle> itemstoremove, string oldDirrection)
+        public bool AddRemoveSword(bool weaponCreated, int frame, Rectangle Sword, Rectangle PlayerBox, List<Rectangle> itemstoremove, string oldDirrection)
         {
+            FollowPlayer(Sword, PlayerBox, weaponCreated, oldDirrection);
 
-            // if the weapon is melee or ranged, then follow playr and if the weapon timer runs out, delete itself
-            if ((string)self.Tag == $"melee" || (string)self.Tag == $"ranged")
+            if (frame > weaponTimer)
             {
-                weaponCreated = FollowPlayer(self, Player, weaponCreated, oldDirrection);
-
-                if (frame > weaponTimer)
-                {
-                    itemstoremove.Add(self);
-
-                    weaponCreated = false;
-                }
-
+                itemstoremove.Add(Sword);
+                weaponCreated = false;
             }
 
             return weaponCreated;
@@ -380,7 +416,7 @@ namespace Basic_Game_2
 
 
         // This makes no sense to use as an object
-        public bool FollowPlayer(Rectangle z, Rectangle PlayerCharacter, bool weaponCreated, string oldDirrection)
+        public void FollowPlayer(Rectangle z, Rectangle PlayerCharacter, bool weaponCreated, string oldDirrection)
         {
             // Follow the Player Perfectly
 
@@ -443,9 +479,6 @@ namespace Basic_Game_2
 
             }
 
-
-
-            return weaponCreated;
         }
     }
 

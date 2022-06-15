@@ -65,6 +65,8 @@ namespace Basic_Game_2
             MessageBox.Show("GAME OVER!");
             MessageBox.Show($"You scored: {points} points!");
 
+            dispatcherTimer.Stop();
+
         }
 
     }
